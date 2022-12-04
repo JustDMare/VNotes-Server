@@ -2,7 +2,7 @@
 	"name": "vnotes-server",
 	"version": "1.0.0",
 	"description": "backend for VNotes application",
-	"main": "index.ts",
+	"main": "src/app.ts",
 	"scripts": {
 		"dev": "nodemon --config nodemon.json src/app.ts",
 		"test": "echo \"Error: no test specified\" && exit 1"
@@ -16,7 +16,8 @@
 		"express": "^4.18.2",
 		"jsonwebtoken": "^8.5.1",
 		"mongoose": "^6.7.5",
-		"nanoid": "^4.0.0"
+		"nanoid": "^4.0.0",
+		"nodemon": "^2.0.20"
 	},
 	"devDependencies": {
 		"@types/body-parser": "^1.19.2",
