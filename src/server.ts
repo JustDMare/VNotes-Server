@@ -2,10 +2,30 @@ import express from "express";
 import http from "http";
 import Logger from "./common/logger";
 import { config } from "./config/default";
+import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import cookieParser from "cookie-parser";
 
+const REQUEST_LIMIT_PERIOD = 15 * 60 * 1000; //15min * 60s * 1000ms
 export const router = express();
 
 export default function startServer(): void {
+	//For the moment CORS will allow connections from everywhere
+	router.use(cors());
+	router.options("*", cors());
+
+	//Setting HTTP headers for security
+	router.use(helmet());
+
+	// Limit requests done to the same endpoint
+	const limiter = rateLimit({
+		max: 100,
+		windowMs: REQUEST_LIMIT_PERIOD,
+		message: "This IP has performed too many requests, please try again in 15 minutes",
+	});
+	router.use(limiter);
+
 	//TODO: Review if this is ok
 	router.use((req, res, next) => {
 		/** Log the req */
@@ -25,32 +45,16 @@ export default function startServer(): void {
 
 	router.use(express.urlencoded({ extended: true }));
 	router.use(express.json());
-
-	//TODO: Review if more rules need implementation
-	router.use((req, res, next) => {
-		res.header("Access-Control-Allow-Origin", "*");
-		res.header(
-			"Access-Control-Allow-Headers",
-			"Origin, X-Requested-With, Content-Type, Accept, Authorization"
-		);
-
-		if (req.method == "OPTIONS") {
-			res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
-			return res.status(200).json({});
-		}
-
-		next();
-	});
+	router.use(cookieParser());
 
 	/** Healthcheck */
-	router.get("/ping", (req, res, next) => res.status(200).json({ hello: "world" }));
+	router.get("/ping", (req, res, next) => res.status(200).json({ ping: "pong" }));
 
-	/** Error handling */
+	/** Error handling. */
+	//TODO: Check if I need more error handling
 	router.use((req, res, next) => {
 		const error = new Error("Page not found");
-
 		Logger.error(error);
-
 		res.status(404).json({
 			message: error.message,
 		});
