@@ -1,11 +1,12 @@
-import express from "express";
-import http from "http";
 import mongoose from "mongoose";
+import Logger from "./common/logger";
 import { config } from "./config/default";
-
-const router = express();
+import startServer from "./server";
 
 mongoose
 	.connect(config.mongo.url, { retryWrites: true, writeConcern: { w: "majority" } })
-	.then(() => console.log("Connected to MongoDB"))
-	.catch((error) => console.log(error));
+	.then(() => {
+		Logger.success("Connected to MongoDB");
+		startServer();
+	})
+	.catch((error) => Logger.error(error));
