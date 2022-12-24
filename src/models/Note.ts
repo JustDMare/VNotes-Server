@@ -1,8 +1,7 @@
-import mongoose, { Schema, model, connect } from "mongoose";
-import { Block, BlockUniqueProperties, BLOCK_TYPES } from "vnotes-types";
-import { Note } from "vnotes-types";
+import mongoose, { Schema } from "mongoose";
+import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 
-const blockSchema = new Schema<Block>({
+const blockSchema = new Schema<BlockSchema>({
 	blockID: mongoose.Types.ObjectId,
 	parentID: { prop: mongoose.Types.ObjectId, ref: "Note" },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
@@ -15,7 +14,7 @@ const blockSchema = new Schema<Block>({
 	},
 });
 
-const noteSchema = new Schema<Note>({
+const noteSchema = new Schema<NoteSchema>({
 	noteID: mongoose.Types.ObjectId,
 	parentID: { type: mongoose.Types.ObjectId, required: false },
 	title: { type: String, required: true },
