@@ -1,12 +1,6 @@
 import mongoose, { Schema, model, connect } from "mongoose";
 import { Block, BlockType, BlockUniqueProperties, BLOCK_TYPES } from "vnotes-types";
 import { Note } from "vnotes-types";
-/*
-TODO: Maybe I can make the unique properties mandatory 
-	and simply set it as false to avoid problems */
-const blockUniquePropertiesSchema = new Schema<BlockUniqueProperties>({
-	selected: { type: Boolean, required: false },
-});
 
 const blockSchema = new Schema<Block>({
 	blockID: mongoose.Types.ObjectId,
@@ -15,7 +9,10 @@ const blockSchema = new Schema<Block>({
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
 	content: { type: String },
-	uniqueProperties: { type: blockUniquePropertiesSchema, required: false },
+	uniqueProperties: {
+		type: { selected: { type: Boolean, required: isSelectedRequired, default: false } },
+		required: isSelectedRequired,
+	},
 });
 
 const noteSchema = new Schema<Note>({
@@ -26,3 +23,10 @@ const noteSchema = new Schema<Note>({
 	lastUpdatedTime: { type: String, required: true },
 	content: [blockSchema],
 });
+
+function isSelectedRequired(this: Block) {
+	if (this.type === "checkbox") {
+		return true;
+	}
+	return false;
+}
