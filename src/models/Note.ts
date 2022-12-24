@@ -31,3 +31,5 @@ blockSchema.pre("validate", function (next) {
 	}
 	next();
 });
+
+export const NoteModel = mongoose.model("Note", noteSchema);
