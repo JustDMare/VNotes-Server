@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { Folder, FolderSchema } from "vnotes-types";
+import { FolderSchema } from "vnotes-types";
 
 const folderSchema = new Schema<FolderSchema>({
 	folderID: mongoose.Types.ObjectId,
