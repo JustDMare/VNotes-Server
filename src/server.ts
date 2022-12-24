@@ -6,6 +6,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import noteRoutes from "./routes/noteRoutes";
 
 const REQUEST_LIMIT_PERIOD = 15 * 60 * 1000; //15min * 60s * 1000ms
 export const router = express();
@@ -46,6 +47,8 @@ export default function startServer(): void {
 	router.use(express.urlencoded({ extended: true }));
 	router.use(express.json());
 	router.use(cookieParser());
+
+	router.use("/notes", noteRoutes);
 
 	/** Healthcheck */
 	router.get("/ping", (req, res, next) => res.status(200).json({ ping: "pong" }));

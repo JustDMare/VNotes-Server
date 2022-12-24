@@ -9,4 +9,4 @@ const folderSchema = new Schema<FolderSchema>({
 	lastUpdatedTime: { type: String, required: true },
 });
 
-export const FolderModel = mongoose.model("Folder", folderSchema);
+export const FolderModel = mongoose.model<FolderSchema>("Folder", folderSchema);
