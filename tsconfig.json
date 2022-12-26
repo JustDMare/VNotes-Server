@@ -8,8 +8,11 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "noImplicitAny": false
   },
   "include": [
-    "src/**/*"
-, "app.ts", "app.ts"  ]
+    "src/**/*",
+    "app.ts",
+    "app.ts"
+  ]
 }
