@@ -2,10 +2,10 @@ import { FolderModel } from "./../models/Folder";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
-const createFolder = (req: Request, res: Response, next: NextFunction) => {
+function createFolder(req: Request, res: Response, next: NextFunction) {
 	const { folderID, name, parentID } = req.body;
 
-	const note = new FolderModel({
+	const folder = new FolderModel({
 		folderID,
 		parentID,
 		name,
@@ -13,12 +13,25 @@ const createFolder = (req: Request, res: Response, next: NextFunction) => {
 		lastUpdatedTime: Date.now().toString(),
 	});
 
-	return note
+	return folder
 		.save()
-		.then((book) => res.status(201).json({ book }))
+		.then((folder) => res.status(201).json({ folder }))
 		.catch((error) => res.status(500).json({ error }));
-};
+}
+
+function deleteFolder(req: Request, res: Response, next: NextFunction) {
+	const folder = FolderModel.findOneAndDelete({ folderID: req.params.folderID });
+
+	return folder
+		.then((folder) =>
+			folder
+				? res.status(201).json({ folder, message: "Folder deleted" })
+				: res.status(404).json({ message: "Folder not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
+}
 
 export const folderController = {
 	createFolder,
+	deleteFolder,
 };

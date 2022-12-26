@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { NoteModel } from "../models/Note";
 
-const createNote = (req: Request, res: Response, next: NextFunction) => {
+function createNote(req: Request, res: Response, next: NextFunction) {
 	const { noteID, title, parentID } = req.body;
 
 	const note = new NoteModel({
@@ -16,10 +16,22 @@ const createNote = (req: Request, res: Response, next: NextFunction) => {
 
 	return note
 		.save()
-		.then((book) => res.status(201).json({ book }))
+		.then((note) => res.status(201).json({ note }))
 		.catch((error) => res.status(500).json({ error }));
-};
+}
+function deleteNote(req: Request, res: Response, next: NextFunction) {
+	const note = NoteModel.findOneAndDelete({ noteID: req.params.noteID });
+
+	return note
+		.then((note) =>
+			note
+				? res.status(201).json({ note, message: "Note deleted" })
+				: res.status(404).json({ message: "Note not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
+}
 
 export const noteController = {
 	createNote,
+	deleteNote,
 };
