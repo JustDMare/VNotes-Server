@@ -15,4 +15,5 @@ folderSchema.pre("save", function (next) {
 	}
 	next();
 });
+
 export const FolderModel = mongoose.model<FolderSchema>("Folder", folderSchema);

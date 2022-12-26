@@ -10,8 +10,8 @@ const createNote = (req: Request, res: Response, next: NextFunction) => {
 		noteID,
 		parentID,
 		title,
-		lastUpdatedTime: Date.now().toString(),
 		createdTime: Date.now().toString(),
+		lastUpdatedTime: Date.now().toString(),
 	});
 
 	return note

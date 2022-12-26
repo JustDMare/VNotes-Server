@@ -9,8 +9,8 @@ const createFolder = (req: Request, res: Response, next: NextFunction) => {
 		folderID,
 		parentID,
 		name,
-		lastUpdatedTime: Date.now().toString(),
 		createdTime: Date.now().toString(),
+		lastUpdatedTime: Date.now().toString(),
 	});
 
 	return note
