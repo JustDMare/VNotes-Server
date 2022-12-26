@@ -1,15 +1,14 @@
+import { FolderModel } from "./../models/Folder";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import { NoteModel } from "../models/Note";
 
-const createNote = (req: Request, res: Response, next: NextFunction) => {
-	const { noteID, title, parentID } = req.body;
+const createFolder = (req: Request, res: Response, next: NextFunction) => {
+	const { folderID, name, parentID } = req.body;
 
-	const note = new NoteModel({
-		_id: new mongoose.Types.ObjectId(),
-		noteID,
+	const note = new FolderModel({
+		folderID,
 		parentID,
-		title,
+		name,
 		lastUpdatedTime: Date.now().toString(),
 		createdTime: Date.now().toString(),
 	});
@@ -20,6 +19,6 @@ const createNote = (req: Request, res: Response, next: NextFunction) => {
 		.catch((error) => res.status(500).json({ error }));
 };
 
-export const noteController = {
-	createNote,
+export const folderController = {
+	createFolder,
 };

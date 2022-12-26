@@ -2,8 +2,8 @@ import mongoose, { Schema } from "mongoose";
 import { FolderSchema } from "vnotes-types";
 
 const folderSchema = new Schema<FolderSchema>({
-	folderID: mongoose.Types.ObjectId,
-	parentID: { type: mongoose.Types.ObjectId, required: false },
+	folderID: { type: String, required: true, unique: true, index: 1 },
+	parentID: { type: String, required: false },
 	name: { type: String, required: true },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
