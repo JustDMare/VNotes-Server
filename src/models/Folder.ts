@@ -9,4 +9,10 @@ const folderSchema = new Schema<FolderSchema>({
 	lastUpdatedTime: { type: String, required: true },
 });
 
+folderSchema.pre("save", function (next) {
+	if (!this.name.length) {
+		this.name = "Untitled";
+	}
+	next();
+});
 export const FolderModel = mongoose.model<FolderSchema>("Folder", folderSchema);

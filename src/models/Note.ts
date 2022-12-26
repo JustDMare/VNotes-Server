@@ -30,5 +30,11 @@ blockSchema.pre("validate", function (next) {
 	}
 	next();
 });
+noteSchema.pre("save", function (next) {
+	if (!this.title.length) {
+		this.title = "Untitled";
+	}
+	next();
+});
 
 export const NoteModel = mongoose.model<NoteSchema>("Note", noteSchema);
