@@ -3,10 +3,9 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
 function createFolder(req: Request, res: Response, next: NextFunction) {
-	const { folderID, name, parentID } = req.body;
+	const { name, parentID } = req.body;
 
 	const folder = new FolderModel({
-		folderID,
 		parentID,
 		name,
 		createdTime: Date.now().toString(),
@@ -20,7 +19,7 @@ function createFolder(req: Request, res: Response, next: NextFunction) {
 }
 
 function deleteFolder(req: Request, res: Response, next: NextFunction) {
-	const folder = FolderModel.findOneAndDelete({ folderID: req.params.folderID });
+	const folder = FolderModel.findOneAndDelete({ _id: req.params.id });
 
 	return folder
 		.then((folder) =>

@@ -4,6 +4,6 @@ import express from "express";
 const router = express.Router();
 
 router.post("/create", noteController.createNote);
-router.delete("/delete/:noteID", noteController.deleteNote);
+router.delete("/delete/:id", noteController.deleteNote);
 
 export default router;

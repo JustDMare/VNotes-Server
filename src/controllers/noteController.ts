@@ -3,11 +3,9 @@ import mongoose from "mongoose";
 import { NoteModel } from "../models/Note";
 
 function createNote(req: Request, res: Response, next: NextFunction) {
-	const { noteID, title, parentID } = req.body;
+	const { title, parentID } = req.body;
 
 	const note = new NoteModel({
-		_id: new mongoose.Types.ObjectId(),
-		noteID,
 		parentID,
 		title,
 		createdTime: Date.now().toString(),
@@ -21,7 +19,7 @@ function createNote(req: Request, res: Response, next: NextFunction) {
 		.catch((error) => res.status(500).json({ error }));
 }
 function deleteNote(req: Request, res: Response, next: NextFunction) {
-	const note = NoteModel.findOneAndDelete({ noteID: req.params.noteID });
+	const note = NoteModel.findOneAndDelete({ _id: req.params.id });
 
 	return note
 		.then((note) =>
@@ -30,6 +28,14 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 				: res.status(404).json({ message: "Note not found" })
 		)
 		.catch((error) => res.status(500).json({ error }));
+}
+
+function updateNoteContent(req: Request, res: Response, next: NextFunction) {
+	const { noteID, content } = req.body;
+
+	//TODO: BlockModel
+	//TODO: Loop creating blockModels out of the content
+	// Subsitute the Notes content by the new content models
 }
 
 export const noteController = {

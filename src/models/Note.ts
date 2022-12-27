@@ -2,7 +2,6 @@ import mongoose, { Schema } from "mongoose";
 import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 
 const blockSchema = new Schema<BlockSchema>({
-	blockID: { type: String, required: false, unique: true },
 	parentID: { type: String, required: true },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
 	createdTime: { type: String, required: true },
@@ -15,15 +14,11 @@ const blockSchema = new Schema<BlockSchema>({
 });
 
 const noteSchema = new Schema<NoteSchema>({
-	/*TODO: Revisar qué hacer con los noteID, folderID y blockID.
-		Convertirlos a _id?
-	*/
-	noteID: { type: String, required: true, unique: true },
 	parentID: { type: String, required: false },
 	title: { type: String, required: false },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
-	content: { type: [blockSchema], index: true },
+	content: { type: [blockSchema], index: 1 },
 });
 
 blockSchema.pre("validate", function (next) {
