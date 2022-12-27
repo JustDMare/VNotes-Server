@@ -2,8 +2,8 @@ import mongoose, { Schema } from "mongoose";
 import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 
 const blockSchema = new Schema<BlockSchema>({
-	blockID: mongoose.Types.ObjectId,
-	parentID: { prop: mongoose.Types.ObjectId, ref: "Note" },
+	blockID: { type: String, required: false, unique: true },
+	parentID: { type: String, required: true },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
@@ -15,12 +15,15 @@ const blockSchema = new Schema<BlockSchema>({
 });
 
 const noteSchema = new Schema<NoteSchema>({
-	noteID: mongoose.Types.ObjectId,
-	parentID: { type: mongoose.Types.ObjectId, required: false },
-	title: { type: String, required: true },
+	/*TODO: Revisar qué hacer con los noteID, folderID y blockID.
+		Convertirlos a _id?
+	*/
+	noteID: { type: String, required: true, unique: true },
+	parentID: { type: String, required: false },
+	title: { type: String, required: false },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
-	content: [blockSchema],
+	content: { type: [blockSchema], index: true },
 });
 
 blockSchema.pre("validate", function (next) {
@@ -30,5 +33,11 @@ blockSchema.pre("validate", function (next) {
 	}
 	next();
 });
+noteSchema.pre("save", function (next) {
+	if (!this.title) {
+		this.title = "Untitled";
+	}
+	next();
+});
 
-export const NoteModel = mongoose.model("Note", noteSchema);
+export const NoteModel = mongoose.model<NoteSchema>("Note", noteSchema);

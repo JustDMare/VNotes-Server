@@ -5,4 +5,4 @@ const userSpaceSchema = new Schema<UserSpaceSchema>({
 	userSpaceID: mongoose.Types.ObjectId,
 });
 
-export const UserSpaceModel = mongoose.model("User_Space", userSpaceSchema);
+export const UserSpaceModel = mongoose.model<UserSpaceSchema>("User_Space", userSpaceSchema);
