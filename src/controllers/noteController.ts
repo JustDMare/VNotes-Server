@@ -33,22 +33,21 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 
 function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	const { _id, title, content } = req.body;
-
-	return NoteModel.findOneAndUpdate(
-		_id,
-		{
-			title,
-			content,
-			lastUpdatedTime: Date.now().toString(),
-		},
-		{ new: true }
-	)
-		.then((note) =>
+	return NoteModel.findById(_id).then((note) => {
+		if (note) {
+			note.title = title;
+			note.content = content;
+			note.lastUpdatedTime = Date.now().toString();
 			note
-				? res.status(201).json({ note, message: "Note updated" })
-				: res.status(404).json({ message: "Note not found" })
-		)
-		.catch((error) => res.status(500).json({ error }));
+				.save()
+				.then((note) =>
+					note
+						? res.status(201).json({ note, message: "Note updated" })
+						: res.status(404).json({ message: "Note not found" })
+				)
+				.catch((error) => res.status(500).json({ error }));
+		}
+	});
 }
 
 function updateNoteTitle(req: Request, res: Response, next: NextFunction) {
@@ -80,11 +79,11 @@ function updateNoteParentID(req: Request, res: Response, next: NextFunction) {
 		},
 		{ new: true }
 	)
-		.then((note) =>
+		.then((note) => {
 			note
 				? res.status(201).json({ note, message: "Note moved" })
-				: res.status(404).json({ message: "Note not found" })
-		)
+				: res.status(404).json({ message: "Note not found" });
+		})
 		.catch((error) => res.status(500).json({ error }));
 }
 
