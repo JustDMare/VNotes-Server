@@ -29,8 +29,45 @@ function deleteFolder(req: Request, res: Response, next: NextFunction) {
 		)
 		.catch((error) => res.status(500).json({ error }));
 }
+function updateFolderName(req: Request, res: Response, next: NextFunction) {
+	const { _id, name } = req.body;
 
+	return FolderModel.findOneAndUpdate(
+		_id,
+		{
+			name,
+			lastUpdatedTime: Date.now().toString(),
+		},
+		{ new: true }
+	)
+		.then((folder) =>
+			folder
+				? res.status(201).json({ folder, message: "Folder renamed" })
+				: res.status(404).json({ message: "Folder not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
+}
+function updateFolderParentID(req: Request, res: Response, next: NextFunction) {
+	const { _id, parentID } = req.body;
+
+	return FolderModel.findOneAndUpdate(
+		_id,
+		{
+			parentID,
+			lastUpdatedTime: Date.now().toString(),
+		},
+		{ new: true }
+	)
+		.then((folder) =>
+			folder
+				? res.status(201).json({ folder, message: "Folder moved" })
+				: res.status(404).json({ message: "Folder not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
+}
 export const folderController = {
 	createFolder,
 	deleteFolder,
+	updateFolderName,
+	updateFolderParentID,
 };

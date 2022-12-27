@@ -45,7 +45,44 @@ function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	)
 		.then((note) =>
 			note
-				? res.status(201).json({ note, message: "Note Updated" })
+				? res.status(201).json({ note, message: "Note updated" })
+				: res.status(404).json({ message: "Note not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
+}
+
+function updateNoteTitle(req: Request, res: Response, next: NextFunction) {
+	const { _id, title } = req.body;
+
+	return NoteModel.findOneAndUpdate(
+		_id,
+		{
+			title,
+			lastUpdatedTime: Date.now().toString(),
+		},
+		{ new: true }
+	)
+		.then((note) =>
+			note
+				? res.status(201).json({ note, message: "Note title updated" })
+				: res.status(404).json({ message: "Note not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
+}
+function updateNoteParentID(req: Request, res: Response, next: NextFunction) {
+	const { _id, parentID } = req.body;
+
+	return NoteModel.findOneAndUpdate(
+		_id,
+		{
+			parentID,
+			lastUpdatedTime: Date.now().toString(),
+		},
+		{ new: true }
+	)
+		.then((note) =>
+			note
+				? res.status(201).json({ note, message: "Note moved" })
 				: res.status(404).json({ message: "Note not found" })
 		)
 		.catch((error) => res.status(500).json({ error }));
@@ -55,4 +92,6 @@ export const noteController = {
 	createNote,
 	deleteNote,
 	updateNoteContent,
+	updateNoteTitle,
+	updateNoteParentID,
 };
