@@ -1,3 +1,4 @@
+import { NoteSchema } from "vnotes-types";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { NoteModel } from "../models/Note";
@@ -31,14 +32,27 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 }
 
 function updateNoteContent(req: Request, res: Response, next: NextFunction) {
-	const { noteID, content } = req.body;
+	const { _id, title, content } = req.body;
 
-	//TODO: BlockModel
-	//TODO: Loop creating blockModels out of the content
-	// Subsitute the Notes content by the new content models
+	return NoteModel.findOneAndUpdate(
+		_id,
+		{
+			title,
+			content,
+			lastUpdatedTime: Date.now().toString(),
+		},
+		{ new: true }
+	)
+		.then((note) =>
+			note
+				? res.status(201).json({ note, message: "Note Updated" })
+				: res.status(404).json({ message: "Note not found" })
+		)
+		.catch((error) => res.status(500).json({ error }));
 }
 
 export const noteController = {
 	createNote,
 	deleteNote,
+	updateNoteContent,
 };

@@ -4,8 +4,6 @@ import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 const blockSchema = new Schema<BlockSchema>({
 	parentID: { type: String, required: true },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
-	createdTime: { type: String, required: true },
-	lastUpdatedTime: { type: String, required: true },
 	content: { type: String },
 	uniqueProperties: {
 		type: { selected: { type: Boolean, required: false, default: false } },
