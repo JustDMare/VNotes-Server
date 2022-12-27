@@ -12,6 +12,7 @@ function createNote(req: Request, res: Response, next: NextFunction) {
 		title,
 		createdTime: Date.now().toString(),
 		lastUpdatedTime: Date.now().toString(),
+		content: [],
 	});
 
 	return note
