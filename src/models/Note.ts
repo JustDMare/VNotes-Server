@@ -1,12 +1,14 @@
 import mongoose, { Schema } from "mongoose";
 import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
+import Logger from "../common/logger";
 
 const blockSchema = new Schema<BlockSchema>({
 	parentID: { type: String, required: true },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
 	content: { type: String },
 	uniqueProperties: {
-		type: { selected: { type: Boolean, required: false, default: false } },
+		_id: false,
+		type: { selected: { type: Boolean, required: false } },
 		required: true,
 	},
 });
@@ -19,8 +21,8 @@ const noteSchema = new Schema<NoteSchema>({
 	content: { type: [blockSchema], index: 1 },
 });
 
-blockSchema.pre("validate", function (next) {
-	if (this.type === "checkbox" && !Object.hasOwn(this.uniqueProperties, "selected")) {
+blockSchema.pre("save", function (next) {
+	if (this.type === "checkbox" && this.uniqueProperties.selected === undefined) {
 		const error = new Error('"selected" property is required for checkbox blocks');
 		next(error);
 	}
