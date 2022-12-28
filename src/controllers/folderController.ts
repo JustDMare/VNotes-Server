@@ -1,15 +1,19 @@
 import { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 import { FolderModel } from "./../models/Folder";
 
 function createFolder(req: Request, res: Response, next: NextFunction) {
 	const { name, parentID } = req.body;
 
 	const folder = new FolderModel({
-		parentID,
 		name,
 		createdTime: Date.now().toString(),
 		lastUpdatedTime: Date.now().toString(),
 	});
+	console.log(parentID.length);
+	if (parentID.length) {
+		folder.parentID = new mongoose.Types.ObjectId(parentID);
+	}
 
 	return folder
 		.save()

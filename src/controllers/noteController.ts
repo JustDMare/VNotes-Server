@@ -7,12 +7,15 @@ function createNote(req: Request, res: Response, next: NextFunction) {
 	const { title, parentID } = req.body;
 
 	const note = new NoteModel({
-		parentID,
+		parentID: null,
 		title,
 		createdTime: Date.now().toString(),
 		lastUpdatedTime: Date.now().toString(),
 		content: [],
 	});
+	if (parentID.length) {
+		note.parentID = new mongoose.Types.ObjectId(parentID);
+	}
 
 	return note
 		.save()
