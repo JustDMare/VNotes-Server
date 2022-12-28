@@ -4,7 +4,7 @@ import { FolderSchema } from "vnotes-types";
 import Logger from "../common/logger";
 
 const folderSchema = new Schema<FolderSchema>({
-	parentID: { type: String, required: false },
+	parentID: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
 	name: { type: String, required: true },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },

@@ -3,7 +3,7 @@ import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 import Logger from "../common/logger";
 
 const blockSchema = new Schema<BlockSchema>({
-	parentID: { type: String, required: true },
+	parentID: { type: mongoose.Types.ObjectId, required: true, ref: "Note" },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
 	content: { type: String },
 	uniqueProperties: {
@@ -14,7 +14,7 @@ const blockSchema = new Schema<BlockSchema>({
 });
 
 const noteSchema = new Schema<NoteSchema>({
-	parentID: { type: String, required: false },
+	parentID: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
 	title: { type: String, required: false },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
