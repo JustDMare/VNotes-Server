@@ -37,6 +37,8 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 //TODO: Change all .then() by await for cleaner code?
 function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	const { _id, title, content } = req.body;
+	//Finish mapping content to convert all parentIDs to mongoose.Type.ObjectId
+	const parsedContent: any[] = content.map();
 	return NoteModel.findById(_id).then((note) => {
 		if (note) {
 			note.title = title;
@@ -78,7 +80,7 @@ function updateNoteParentID(req: Request, res: Response, next: NextFunction) {
 	return NoteModel.findOneAndUpdate(
 		_id,
 		{
-			parentID,
+			parentID: new mongoose.Types.ObjectId(parentID),
 			lastUpdatedTime: Date.now().toString(),
 		},
 		{ new: true }
