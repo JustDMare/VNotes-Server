@@ -1,6 +1,5 @@
-import { FolderModel } from "./../models/Folder";
 import { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
+import { FolderModel } from "./../models/Folder";
 
 function createFolder(req: Request, res: Response, next: NextFunction) {
 	const { name, parentID } = req.body;
@@ -17,16 +16,23 @@ function createFolder(req: Request, res: Response, next: NextFunction) {
 		.then((folder) => res.status(201).json({ folder }))
 		.catch((error) => res.status(500).json({ error }));
 }
-
+//TODO: Change all .then() by await for cleaner code?
 function deleteFolder(req: Request, res: Response, next: NextFunction) {
-	const folder = FolderModel.findOneAndDelete({ _id: req.params.id });
-
-	return folder
-		.then((folder) =>
-			folder
-				? res.status(201).json({ folder, message: "Folder deleted" })
-				: res.status(404).json({ message: "Folder not found" })
-		)
+	return FolderModel.findOne({ _id: req.params.id })
+		.then((folder) => {
+			if (folder) {
+				folder
+					.remove()
+					.then((folder) =>
+						folder
+							? res.status(201).json({ folder, message: "Folder deleted" })
+							: res.status(404).json({ message: "Folder not found" })
+					)
+					.catch((error) => res.status(500).json({ error }));
+			} else {
+				res.status(404).json({ message: "Folder not found" });
+			}
+		})
 		.catch((error) => res.status(500).json({ error }));
 }
 function updateFolderName(req: Request, res: Response, next: NextFunction) {

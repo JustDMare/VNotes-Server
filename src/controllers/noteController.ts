@@ -31,6 +31,7 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 		.catch((error) => res.status(500).json({ error }));
 }
 
+//TODO: Change all .then() by await for cleaner code?
 function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	const { _id, title, content } = req.body;
 	return NoteModel.findById(_id).then((note) => {
