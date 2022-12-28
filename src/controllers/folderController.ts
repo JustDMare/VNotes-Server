@@ -63,7 +63,7 @@ function updateFolderParentID(req: Request, res: Response, next: NextFunction) {
 	return FolderModel.findOneAndUpdate(
 		_id,
 		{
-			parentID,
+			parentID: new mongoose.Types.ObjectId(parentID),
 			lastUpdatedTime: Date.now().toString(),
 		},
 		{ new: true }

@@ -21,6 +21,7 @@ folderSchema.pre("save", function (next) {
 folderSchema.pre("remove", { document: true, query: false }, function (next) {
 	const folderId = this._id;
 	console.log(folderId);
+	//TODO: Create better logger messages
 	FolderModel.find({ parentID: folderId }).then((folders) => {
 		folders.forEach((folder) => folder.remove().then((folder) => Logger.log(folder)));
 	});
