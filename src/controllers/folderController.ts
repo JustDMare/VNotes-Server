@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
+import Logger from "../common/logger";
 import { FolderModel } from "./../models/Folder";
 
 /**
@@ -8,25 +9,38 @@ import { FolderModel } from "./../models/Folder";
  *
  * @returns {mongoose.Document} The newly created folder
  */
-function createFolder(req: Request, res: Response, next: NextFunction) {
-	const { name, parentID } = req.body;
+async function createFolder(req: Request, res: Response, next: NextFunction) {
+	try {
+		const { name, parentID } = req.body;
 
-	const folder = new FolderModel({
-		name,
-		createdTime: Date.now().toString(),
-		lastUpdatedTime: Date.now().toString(),
-	});
-	console.log(parentID.length);
-	if (parentID.length) {
-		folder.parentID = new mongoose.Types.ObjectId(parentID);
+		const folder = new FolderModel({
+			name,
+			createdTime: Date.now().toString(),
+			lastUpdatedTime: Date.now().toString(),
+		});
+
+		if (parentID.length) {
+			if (!(await folderExists(parentID))) {
+				return res.status(400).json({ error: `Folder with _id '${parentID}' does not exist` });
+			}
+			folder.parentID = new mongoose.Types.ObjectId(parentID);
+		}
+		//TODO: Continuar arreglando las otras funciones igual que esta
+		const savedFolder = await folder.save();
+		return res.status(201).json({ savedFolder });
+	} catch (error) {
+		Logger.error(error);
+		return res.status(400).json({ error });
 	}
-
-	return folder
-		.save()
-		.then((folder) => res.status(201).json({ folder }))
-		.catch((error) => res.status(500).json({ error }));
 }
-//TODO: Change all .then() by await for cleaner code?
+
+async function folderExists(folderID: string) {
+	const parentFolder = await FolderModel.findOne({ _id: folderID });
+	if (!parentFolder) {
+		return false;
+	}
+	return true;
+}
 
 /**
  * Deletes the folder that matches the `_id` in `req.params`.

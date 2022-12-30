@@ -37,7 +37,7 @@ blockSchema.pre("save", function (next) {
  *  predefined title "Untitled"
  */
 noteSchema.pre("save", function (next) {
-	if (!this.title) {
+	if (!this.title.length) {
 		this.title = "Untitled";
 	}
 	next();

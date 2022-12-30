@@ -20,6 +20,7 @@ folderSchema.pre("save", function (next) {
 	}
 	next();
 });
+
 /**
  * Hook executed prior to the removal of a folder.
  * Finds all Notes and Folders that have as their parentID the folder that is being removed
@@ -29,12 +30,17 @@ folderSchema.pre("save", function (next) {
 folderSchema.pre("remove", { document: true, query: false }, function (next) {
 	const folderId = this._id;
 	console.log(folderId);
-	//TODO: Create better logger messages
-	FolderModel.find({ parentID: folderId }).then((folders) => {
-		folders.forEach((folder) => folder.remove().then((folder) => Logger.log(folder)));
-	});
 	NoteModel.find({ parentID: folderId }).then((notes) => {
-		notes.forEach((note) => note.remove().then((note) => Logger.log(note)));
+		notes.forEach((note) =>
+			note.remove().then((note) => Logger.log(`[CASCADE DELETE] - Deleted note: ${note._id}`))
+		);
+	});
+	FolderModel.find({ parentID: folderId }).then((folders) => {
+		folders.forEach((folder) =>
+			folder
+				.remove()
+				.then((folder) => Logger.log(`[CASCADE DELETE] - Deleted folder: ${folder._id}`))
+		);
 	});
 	next();
 });
