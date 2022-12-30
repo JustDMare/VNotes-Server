@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
-import Logger from "../common/logger";
 
 const blockSchema = new Schema<BlockSchema>({
 	type: { type: String, enum: BLOCK_TYPES, required: true },
