@@ -1,4 +1,3 @@
-import { NoteSchema } from "vnotes-types";
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { NoteModel } from "../models/Note";
@@ -37,8 +36,7 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 //TODO: Change all .then() by await for cleaner code?
 function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	const { _id, title, content } = req.body;
-	//Finish mapping content to convert all parentIDs to mongoose.Type.ObjectId
-	const parsedContent: any[] = content.map();
+
 	return NoteModel.findById(_id).then((note) => {
 		if (note) {
 			note.title = title;

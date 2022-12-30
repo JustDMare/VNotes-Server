@@ -3,7 +3,6 @@ import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 import Logger from "../common/logger";
 
 const blockSchema = new Schema<BlockSchema>({
-	parentID: { type: mongoose.Types.ObjectId, required: true, ref: "Note" },
 	type: { type: String, enum: BLOCK_TYPES, required: true },
 	content: { type: String },
 	uniqueProperties: {
@@ -28,6 +27,7 @@ blockSchema.pre("save", function (next) {
 	}
 	next();
 });
+
 noteSchema.pre("save", function (next) {
 	if (!this.title) {
 		this.title = "Untitled";
