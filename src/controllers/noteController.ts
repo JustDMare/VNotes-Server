@@ -2,6 +2,12 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { NoteModel } from "../models/Note";
 
+/**
+ * Creates a note with the  `title` and `parentID` provided in `req.body`.
+ *  Then it returns the newly created note.
+ *
+ * @returns {mongoose.Document} The newly created note
+ */
 function createNote(req: Request, res: Response, next: NextFunction) {
 	const { title, parentID } = req.body;
 
@@ -21,6 +27,13 @@ function createNote(req: Request, res: Response, next: NextFunction) {
 		.then((note) => res.status(201).json({ note }))
 		.catch((error) => res.status(500).json({ error }));
 }
+
+/**
+ * Deletes the note that matches the `_id` in `req.params`.
+ * 	Then returns the deleted note if any. Otherwise it returns an error.
+ *
+ * @returns {mongoose.Document} the deleted note.
+ */
 function deleteNote(req: Request, res: Response, next: NextFunction) {
 	const note = NoteModel.findOneAndDelete({ _id: req.params.id });
 
@@ -34,6 +47,13 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 }
 
 //TODO: Change all .then() by await for cleaner code?
+/**
+ * Overwrites the `content` of the note matching the  `_id`. Both fields provided in
+ * 	{@field req.body}. Then it returns the updated note.
+ *  Returns an error if no note matching the provided  `_id` is found.
+ *
+ * @returns {mongoose.Document} the updated note.
+ */
 function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	const { _id, title, content } = req.body;
 
@@ -54,6 +74,13 @@ function updateNoteContent(req: Request, res: Response, next: NextFunction) {
 	});
 }
 
+/**
+ * Updates the `title` of the folder matching the `_id`. Both fields provided in
+ * 	`req.body`. Then it returns the updated note.
+ *  Returns an error if no note matching the provided `_id` is found.
+ *
+ * @returns {mongoose.Document} the updated note.
+ */
 function updateNoteTitle(req: Request, res: Response, next: NextFunction) {
 	const { _id, title } = req.body;
 
@@ -72,6 +99,14 @@ function updateNoteTitle(req: Request, res: Response, next: NextFunction) {
 		)
 		.catch((error) => res.status(500).json({ error }));
 }
+
+/**
+ * Updates the `parentID` of the note matching the `_id`. Both fields provided in
+ * 	`req.body`. Then it returns the updated note.
+ *  Returns an error if no note matching the provided  `_id` is found.
+ *
+ * @returns {mongoose.Document} the updated note.
+ */
 function updateNoteParentID(req: Request, res: Response, next: NextFunction) {
 	const { _id, parentID } = req.body;
 

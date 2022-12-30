@@ -10,13 +10,21 @@ const folderSchema = new Schema<FolderSchema>({
 	lastUpdatedTime: { type: String, required: true },
 });
 
+/**
+ * Checks if the folder has a name with a lengh of at least 1. If not, it assigns the
+ *  predefined name "Untitled"
+ */
 folderSchema.pre("save", function (next) {
 	if (!this.name.length) {
 		this.name = "Untitled";
 	}
 	next();
 });
-//TODO: Change all .then() by await for cleaner code?
+/**
+ * Hook executed prior to the removal of a folder.
+ * Finds all Notes and Folders that have as their parentID the folder that is being removed
+ * 	and removes them as well. Triggers this same hook for all the removed subfolders.
+ */
 //Pre hook to remove all notes and folders that reference to the deleted one
 folderSchema.pre("remove", { document: true, query: false }, function (next) {
 	const folderId = this._id;
