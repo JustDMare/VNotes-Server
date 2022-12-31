@@ -6,8 +6,8 @@ import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import noteRoutes from "./routes/noteRoutes";
-import folderRoutes from "./routes/folderRoutes";
+import noteRoutes from "./routes/note-routes";
+import folderRoutes from "./routes/folder-routes";
 
 const REQUEST_LIMIT_PERIOD = 15 * 60 * 1000; //15min * 60s * 1000ms
 export const router = express();

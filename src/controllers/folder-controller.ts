@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import mongoose, { isValidObjectId } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import Logger from "../common/logger";
-import { FolderModel } from "./../models/Folder";
+import { FolderModel } from "../models/Folder";
+import { checkFolderExists, checkValidObjetId } from "./common-helpers";
 
 /**
  * Creates a folder with the `name` and `parentID` provided in `req.body`.
@@ -69,8 +70,14 @@ async function deleteFolder(req: Request, res: Response, next: NextFunction) {
 function updateFolderName(req: Request, res: Response, next: NextFunction) {
 	const { _id, name } = req.body;
 
-	return FolderModel.findOneAndUpdate(
-		_id,
+	try {
+		checkValidObjetId(_id);
+	} catch (error) {
+		return res.status(400).json({ error: (<Error>error).message });
+	}
+
+	return FolderModel.findOne(
+		{ _id: _id },
 		{
 			name,
 			lastUpdatedTime: Date.now().toString(),
@@ -80,7 +87,7 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
 		.then((folder) =>
 			folder
 				? res.status(201).json({ folder, message: "Folder renamed" })
-				: res.status(404).json({ message: "Folder not found" })
+				: res.status(404).json({ message: `Folder with _id '${_id}' not found` })
 		)
 		.catch((error) => res.status(500).json({ error }));
 }
@@ -88,17 +95,40 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
 /**
  * Updates the `parentID` of the folder matching the `_id`. Both fields provided in
  * 	`req.body`. Then it returns the updated folder.
- *  Returns an error if no folder matching the provided `_id` is found.
+ * Returns an error if no folder matching the provided `_id` is found, if the common
+ * 		checks fail or if the `parentID` and `_id` contain the same value.
  *
  * @returns the updated folder.
  */
-function updateFolderParentID(req: Request, res: Response, next: NextFunction) {
+async function updateFolderParentID(req: Request, res: Response, next: NextFunction) {
 	const { _id, parentID } = req.body;
+	let parentObjectId: Types.ObjectId | null = null;
+
+	if (parentID === _id) {
+		return res.status(400).json({ message: "A Folder cannot be its own parent" });
+	}
+
+	if (parentID.length) {
+		try {
+			checkValidObjetId(_id);
+			await checkFolderExists(parentID);
+		} catch (error) {
+			return res.status(400).json({ error: (<Error>error).message });
+		}
+		const parentIdBelongsToChildFolder = await checkParentIdBelongsToChildFolder(_id, parentID);
+		if (parentIdBelongsToChildFolder) {
+			console.log("a");
+			return res.status(400).json({
+				message: `Folder with _id '${_id}' is a parent Folder of '${parentID}', so it can't be moved`,
+			});
+		}
+		parentObjectId = new mongoose.Types.ObjectId(parentID);
+	}
 
 	return FolderModel.findOneAndUpdate(
-		_id,
+		{ _id: _id },
 		{
-			parentID: new mongoose.Types.ObjectId(parentID),
+			parentID: parentObjectId,
 			lastUpdatedTime: Date.now().toString(),
 		},
 		{ new: true }
@@ -106,7 +136,7 @@ function updateFolderParentID(req: Request, res: Response, next: NextFunction) {
 		.then((folder) =>
 			folder
 				? res.status(201).json({ folder, message: "Folder moved" })
-				: res.status(404).json({ message: "Folder not found" })
+				: res.status(404).json({ message: `Folder with _id '${_id}' not found` })
 		)
 		.catch((error) => res.status(500).json({ error }));
 }
@@ -118,40 +148,26 @@ export const folderController = {
 	updateFolderParentID,
 };
 
-// HELPER FUNCTIONS
-
 /**
- * Helper function used to check if a folder with an `_id` equal to the given `folderID` exists in the database
- *  when assigning it as a parent of another folder. It also checks if the given `folderID` is a valid ObjectId.
+ * Checks if the `parentID` given as a paremeter belongs to a child folder (be it a direct child or an indirect child).
+ * 	This is done to avoid circular nesting by having a folder be a child of its own child.
+ * Returns false if `parentID` **does not** belong to a child folder. True otherwise.
  *
- * @param {string} folderID `_id` of the folder to find.
- * @throws Error if `folderID` is not a valid ObjectId.
- * @throws Error if no folder is found.
+ * @param {string} folderID `_id` of the folder that is being checked as a parent of `checkedFolderId`
+ * @param {string} checkedFolderId `_id` of the folder that is going to be checked as a child of `folderID`
+ * @returns {boolean} false if `parentID` **does not** belong to a child folder. True otherwise.
  */
-async function checkFolderExists(folderID: string) {
-	//TODO: Cambiar para que devuelva un res.status en vez de error?
-	checkValidObjetId(folderID);
-	try {
-		const folder = await FolderModel.findOne({ _id: folderID });
-		if (!folder) {
-			throw new Error(`Folder with _id '${folderID}' does not exist`);
-		}
-	} catch (error) {
-		Logger.error(error);
-		throw new Error(
-			`Error while searching for folder with _id '${folderID}: ${(<Error>error).message}`
-		);
+async function checkParentIdBelongsToChildFolder(folderID, checkedFolderId) {
+	const checkedFolder = await FolderModel.findOne({ _id: checkedFolderId });
+	console.log(checkedFolder);
+	if (!checkedFolder) {
+		throw new Error(`Error while searching folder with _id '${checkedFolderId}'`);
 	}
-}
-
-/**
- * Helper function that checks if the `id` passed as a parameter is a valid ObjectId
- *
- * @param {string} id to check if it is a valid ObjectId.
- * @throws error if `id` is not a valid ObjectId
- */
-function checkValidObjetId(id: string) {
-	if (!isValidObjectId(id)) {
-		throw new Error(`Wrong format for _id '${id}'. Can't be converted to ObjectId`);
+	if (!checkedFolder.parentID) {
+		return false;
+	} else if (checkedFolder.parentID.toString() === folderID) {
+		return true;
+	} else {
+		return await checkParentIdBelongsToChildFolder(folderID, checkedFolder.parentID);
 	}
 }

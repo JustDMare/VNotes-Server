@@ -1,4 +1,4 @@
-import { noteController } from "../controllers/noteController";
+import { noteController } from "../controllers/note-controller";
 import express from "express";
 
 const router = express.Router();
