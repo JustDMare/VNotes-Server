@@ -4,7 +4,10 @@ import { config } from "./config/default";
 import startServer from "./server";
 
 mongoose
-	.connect(config.mongo.url, { retryWrites: true, writeConcern: { w: "majority" } })
+	.connect(config.mongo.url, {
+		retryWrites: true,
+		writeConcern: { w: "majority" },
+	})
 	.then(() => {
 		Logger.success("Connected to MongoDB");
 		startServer();
