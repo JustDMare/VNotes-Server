@@ -132,8 +132,10 @@ export const folderController = {
 /**
  * Helper function used to check if a folder with an `_id` equal to the given `folderID` exists in the database
  *  when assigning it as a parent of another folder. It also checks if the given `folderID` is a valid ObjectId.
- * Throws an error if any of the conditions aren't met.
+ *
  * @param folderID `_id` of the folder to find.
+ * @throws Error if `folderID` is not a valid ObjectId.
+ * @throws Error if no folder is found.
  */
 async function checkFolderExists(folderID: string) {
 	if (!isValidObjectId(folderID)) {
