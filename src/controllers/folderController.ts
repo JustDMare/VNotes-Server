@@ -42,29 +42,20 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
  * @returns the deleted folder.
  */
 async function deleteFolder(req: Request, res: Response, next: NextFunction) {
+	const folderID = req.params.id;
 	try {
-		const folderToDelete = await FolderModel.findOne({ _id: req.params.id });
-
-		//const deletedFolder = await folderToDelete.remove();
+		checkValidObjetId(folderID);
 	} catch (error) {
-		Logger.error(error);
-		return res.status(400).json({ error });
+		return res.status(400).json({ error: (<Error>error).message });
 	}
-	return FolderModel.findOne({ _id: req.params.id })
-		.then((folder) => {
-			if (folder) {
-				folder
-					.remove()
-					.then((folder) =>
-						folder
-							? res.status(201).json({ folder, message: "Folder deleted" })
-							: res.status(404).json({ message: "Folder not found" })
-					)
-					.catch((error) => res.status(500).json({ error }));
-			} else {
-				res.status(404).json({ message: "Folder not found" });
-			}
-		})
+
+	const folder = await FolderModel.findOne({ _id: req.params.id });
+	if (!folder) {
+		return res.status(404).json({ message: `Folder with _id '${folderID}' not found` });
+	}
+	folder
+		.remove()
+		.then((folder) => res.status(201).json({ folder, message: `Folder deleted` }))
 		.catch((error) => res.status(500).json({ error }));
 }
 
@@ -133,14 +124,13 @@ export const folderController = {
  * Helper function used to check if a folder with an `_id` equal to the given `folderID` exists in the database
  *  when assigning it as a parent of another folder. It also checks if the given `folderID` is a valid ObjectId.
  *
- * @param folderID `_id` of the folder to find.
+ * @param {string} folderID `_id` of the folder to find.
  * @throws Error if `folderID` is not a valid ObjectId.
  * @throws Error if no folder is found.
  */
 async function checkFolderExists(folderID: string) {
-	if (!isValidObjectId(folderID)) {
-		throw new Error(`Wrong format for _id '${folderID}'. Can't be converted to ObjectId`);
-	}
+	//TODO: Cambiar para que devuelva un res.status en vez de error?
+	checkValidObjetId(folderID);
 	try {
 		const folder = await FolderModel.findOne({ _id: folderID });
 		if (!folder) {
@@ -151,5 +141,17 @@ async function checkFolderExists(folderID: string) {
 		throw new Error(
 			`Error while searching for folder with _id '${folderID}: ${(<Error>error).message}`
 		);
+	}
+}
+
+/**
+ * Helper function that checks if the `id` passed as a parameter is a valid ObjectId
+ *
+ * @param {string} id to check if it is a valid ObjectId.
+ * @throws error if `id` is not a valid ObjectId
+ */
+function checkValidObjetId(id: string) {
+	if (!isValidObjectId(id)) {
+		throw new Error(`Wrong format for _id '${id}'. Can't be converted to ObjectId`);
 	}
 }
