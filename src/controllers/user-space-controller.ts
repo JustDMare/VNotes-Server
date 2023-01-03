@@ -1,6 +1,8 @@
 import { UserSpaceModel } from "./../models/UserSpace";
 import { NextFunction, Request, Response } from "express";
 import Logger from "../common/logger";
+import { FolderModel } from "../models/Folder";
+import { NoteModel } from "../models/Note";
 
 /**
  * Creates a user space with the `userToken` provided in `req.body`.
@@ -31,7 +33,7 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
 
 	const userSpace = await UserSpaceModel.findOne({ userToken });
 	if (!userSpace) {
-		return res.status(404).json({ message: `Folder with userToken '${userToken}' not found` });
+		return res.status(404).json({ message: `User space with userToken '${userToken}' not found` });
 	}
 	userSpace
 		.remove()
@@ -46,8 +48,20 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
  * @returns the user space data and a tree-like structure containing the folders and notes belonging to that space.
  */
 async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
-	const userSpace = await UserSpaceModel.findOne({ userToken: req.params.token });
-	console.log(userSpace);
+	const userToken = req.params.token;
+
+	const userSpaceDoc = await UserSpaceModel.findOne({ userToken });
+	if (!userSpaceDoc) {
+		return res.status(404).json({ message: `User space with userToken '${userToken}' not found` });
+	}
+
+	const userFoldersDocs = await FolderModel.find({ userSpaceId: userSpaceDoc._id }).sort({
+		name: 1,
+	});
+	const userNotesDocs = await NoteModel.find({ userSpaceId: userSpaceDoc._id }).sort({
+		title: 1,
+	});
+	return res.status(200).json({ userSpaceDoc, userFoldersDocs, userNotesDocs });
 }
 
 export const userSpaceController = { createUserSpace, deteleUserSpace, findAllUserSpaceContent };

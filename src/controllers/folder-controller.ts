@@ -12,6 +12,7 @@ import { checkFolderExists, checkValidObjetId } from "./common-helpers";
  */
 async function createFolder(req: Request, res: Response, next: NextFunction) {
 	const { name, parentId, userSpaceId } = req.body;
+	//TODO: Check that userSpaceId exists in Mongo
 
 	const folder = new FolderModel({
 		name,
@@ -20,7 +21,7 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
 		lastUpdatedTime: Date.now().toString(),
 	});
 
-	if (parentId.length) {
+	if (parentId && parentId.length) {
 		try {
 			await checkFolderExists(parentId);
 		} catch (error) {
@@ -109,7 +110,7 @@ async function updateFolderParentId(req: Request, res: Response, next: NextFunct
 		return res.status(400).json({ message: "A Folder cannot be its own parent" });
 	}
 
-	if (parentId.length) {
+	if (parentId && parentId.length) {
 		try {
 			checkValidObjetId(_id);
 			await checkFolderExists(parentId);

@@ -11,7 +11,7 @@ import { checkFolderExists, checkValidObjetId } from "./common-helpers";
  */
 async function createNote(req: Request, res: Response, next: NextFunction) {
 	const { title, parentId, userSpaceId } = req.body;
-
+	//TODO: Check that userSpaceId exists in Mongo
 	const note = new NoteModel({
 		parentId: null,
 		userSpaceId,
@@ -20,7 +20,7 @@ async function createNote(req: Request, res: Response, next: NextFunction) {
 		lastUpdatedTime: Date.now().toString(),
 		content: [],
 	});
-	if (parentId.length) {
+	if (parentId && parentId.length) {
 		try {
 			await checkFolderExists(parentId);
 		} catch (error) {
@@ -141,7 +141,7 @@ async function updateNoteParentId(req: Request, res: Response, next: NextFunctio
 	}
 
 	//TODO: Might be worth to refactor to another function?
-	if (parentId.length) {
+	if (parentId && parentId.length) {
 		try {
 			checkValidObjetId(_id);
 			await checkFolderExists(parentId);
