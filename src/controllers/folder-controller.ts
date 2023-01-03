@@ -50,7 +50,7 @@ async function deleteFolder(req: Request, res: Response, next: NextFunction) {
 		return res.status(400).json({ error: (<Error>error).message });
 	}
 
-	const folder = await FolderModel.findOne({ _id: req.params.id });
+	const folder = await FolderModel.findOne({ _id: folderId });
 	if (!folder) {
 		return res.status(404).json({ message: `Folder with _id '${folderId}' not found` });
 	}

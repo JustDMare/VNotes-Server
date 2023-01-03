@@ -48,7 +48,7 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 		return res.status(400).json({ error: (<Error>error).message });
 	}
 
-	return NoteModel.findOneAndDelete({ _id: req.params.id })
+	return NoteModel.findOneAndDelete({ _id: noteId })
 		.then((note) =>
 			note
 				? res.status(201).json({ note, message: "Note deleted" })
