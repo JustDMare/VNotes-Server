@@ -5,6 +5,7 @@ import Logger from "../common/logger";
 
 const folderSchema = new Schema<FolderSchema>({
 	parentId: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
+	userSpaceId: { type: mongoose.Types.ObjectId, ref: "User_Space" },
 	name: { type: String, required: true },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
