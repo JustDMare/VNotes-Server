@@ -10,10 +10,11 @@ import { checkFolderExists, checkValidObjetId } from "./common-helpers";
  * @returns The newly created note
  */
 async function createNote(req: Request, res: Response, next: NextFunction) {
-	const { title, parentId } = req.body;
+	const { title, parentId, userSpaceId } = req.body;
 
 	const note = new NoteModel({
 		parentId: null,
+		userSpaceId,
 		title,
 		createdTime: Date.now().toString(),
 		lastUpdatedTime: Date.now().toString(),

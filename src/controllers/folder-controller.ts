@@ -11,10 +11,11 @@ import { checkFolderExists, checkValidObjetId } from "./common-helpers";
  * @returns The newly created folder
  */
 async function createFolder(req: Request, res: Response, next: NextFunction) {
-	const { name, parentId } = req.body;
+	const { name, parentId, userSpaceId } = req.body;
 
 	const folder = new FolderModel({
 		name,
+		userSpaceId,
 		createdTime: Date.now().toString(),
 		lastUpdatedTime: Date.now().toString(),
 	});
