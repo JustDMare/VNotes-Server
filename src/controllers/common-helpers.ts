@@ -3,25 +3,25 @@ import Logger from "../common/logger";
 import { FolderModel } from "../models/Folder";
 
 /**
- * Helper function used to check if a folder with an `_id` equal to the given `folderID` exists in the database
- *  when assigning it as a parent of another folder. It also checks if the given `folderID` is a valid ObjectId.
+ * Helper function used to check if a folder with an `_id` equal to the given `folderId` exists in the database
+ *  when assigning it as a parent of another folder. It also checks if the given `folderId` is a valid ObjectId.
  *
- * @param {string} folderID `_id` of the folder to find.
- * @throws Error if `folderID` is not a valid ObjectId.
+ * @param {string} folderId `_id` of the folder to find.
+ * @throws Error if `folderId` is not a valid ObjectId.
  * @throws Error if no folder is found.
  */
-export async function checkFolderExists(folderID: string) {
+export async function checkFolderExists(folderId: string) {
 	//TODO: Cambiar para que devuelva un res.status en vez de error?
-	checkValidObjetId(folderID);
+	checkValidObjetId(folderId);
 	try {
-		const folder = await FolderModel.findOne({ _id: folderID });
+		const folder = await FolderModel.findOne({ _id: folderId });
 		if (!folder) {
-			throw new Error(`Folder with _id '${folderID}' does not exist`);
+			throw new Error(`Folder with _id '${folderId}' does not exist`);
 		}
 	} catch (error) {
 		Logger.error(error);
 		throw new Error(
-			`Error while searching for folder with _id '${folderID}: ${(<Error>error).message}`
+			`Error while searching for folder with _id '${folderId}: ${(<Error>error).message}`
 		);
 	}
 }

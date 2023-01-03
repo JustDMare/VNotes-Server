@@ -5,13 +5,13 @@ import { FolderModel } from "../models/Folder";
 import { checkFolderExists, checkValidObjetId } from "./common-helpers";
 
 /**
- * Creates a folder with the `name` and `parentID` provided in `req.body`.
+ * Creates a folder with the `name` and `parentId` provided in `req.body`.
  *  Then it returns the newly created folder.
  *
  * @returns The newly created folder
  */
 async function createFolder(req: Request, res: Response, next: NextFunction) {
-	const { name, parentID } = req.body;
+	const { name, parentId } = req.body;
 
 	const folder = new FolderModel({
 		name,
@@ -19,13 +19,13 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
 		lastUpdatedTime: Date.now().toString(),
 	});
 
-	if (parentID.length) {
+	if (parentId.length) {
 		try {
-			await checkFolderExists(parentID);
+			await checkFolderExists(parentId);
 		} catch (error) {
 			return res.status(400).json({ error: (<Error>error).message });
 		}
-		folder.parentID = new mongoose.Types.ObjectId(parentID);
+		folder.parentId = new mongoose.Types.ObjectId(parentId);
 	}
 	return folder
 		.save()
@@ -43,16 +43,16 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
  * @returns the deleted folder.
  */
 async function deleteFolder(req: Request, res: Response, next: NextFunction) {
-	const folderID = req.params.id;
+	const folderId = req.params.id;
 	try {
-		checkValidObjetId(folderID);
+		checkValidObjetId(folderId);
 	} catch (error) {
 		return res.status(400).json({ error: (<Error>error).message });
 	}
 
 	const folder = await FolderModel.findOne({ _id: req.params.id });
 	if (!folder) {
-		return res.status(404).json({ message: `Folder with _id '${folderID}' not found` });
+		return res.status(404).json({ message: `Folder with _id '${folderId}' not found` });
 	}
 	folder
 		.remove()
@@ -93,42 +93,42 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Updates the `parentID` of the folder matching the `_id`. Both fields provided in
+ * Updates the `parentId` of the folder matching the `_id`. Both fields provided in
  * 	`req.body`. Then it returns the updated folder.
  * Returns an error if no folder matching the provided `_id` is found, if the common
- * 		checks fail or if the `parentID` and `_id` contain the same value.
+ * 		checks fail or if the `parentId` and `_id` contain the same value.
  *
  * @returns the updated folder.
  */
-async function updateFolderParentID(req: Request, res: Response, next: NextFunction) {
-	const { _id, parentID } = req.body;
+async function updateFolderParentId(req: Request, res: Response, next: NextFunction) {
+	const { _id, parentId } = req.body;
 	let parentObjectId: Types.ObjectId | null = null;
 
-	if (parentID === _id) {
+	if (parentId === _id) {
 		return res.status(400).json({ message: "A Folder cannot be its own parent" });
 	}
 
-	if (parentID.length) {
+	if (parentId.length) {
 		try {
 			checkValidObjetId(_id);
-			await checkFolderExists(parentID);
+			await checkFolderExists(parentId);
 		} catch (error) {
 			return res.status(400).json({ error: (<Error>error).message });
 		}
-		const parentIdBelongsToChildFolder = await checkParentIdBelongsToChildFolder(_id, parentID);
+		const parentIdBelongsToChildFolder = await checkParentIdBelongsToChildFolder(_id, parentId);
 		if (parentIdBelongsToChildFolder) {
 			console.log("a");
 			return res.status(400).json({
-				message: `Folder with _id '${_id}' is a parent Folder of '${parentID}', so it can't be moved`,
+				message: `Folder with _id '${_id}' is a parent Folder of '${parentId}', so it can't be moved`,
 			});
 		}
-		parentObjectId = new mongoose.Types.ObjectId(parentID);
+		parentObjectId = new mongoose.Types.ObjectId(parentId);
 	}
 
 	return FolderModel.findOneAndUpdate(
 		{ _id: _id },
 		{
-			parentID: parentObjectId,
+			parentId: parentObjectId,
 			lastUpdatedTime: Date.now().toString(),
 		},
 		{ new: true }
@@ -145,29 +145,29 @@ export const folderController = {
 	createFolder,
 	deleteFolder,
 	updateFolderName,
-	updateFolderParentID,
+	updateFolderParentId,
 };
 
 /**
- * Checks if the `parentID` given as a paremeter belongs to a child folder (be it a direct child or an indirect child).
+ * Checks if the `parentId` given as a paremeter belongs to a child folder (be it a direct child or an indirect child).
  * 	This is done to avoid circular nesting by having a folder be a child of its own child.
- * Returns false if `parentID` **does not** belong to a child folder. True otherwise.
+ * Returns false if `parentId` **does not** belong to a child folder. True otherwise.
  *
- * @param {string} folderID `_id` of the folder that is being checked as a parent of `checkedFolderId`
- * @param {string} checkedFolderId `_id` of the folder that is going to be checked as a child of `folderID`
- * @returns {boolean} false if `parentID` **does not** belong to a child folder. True otherwise.
+ * @param {string} folderId `_id` of the folder that is being checked as a parent of `checkedFolderId`
+ * @param {string} checkedFolderId `_id` of the folder that is going to be checked as a child of `folderId`
+ * @returns {boolean} false if `parentId` **does not** belong to a child folder. True otherwise.
  */
-async function checkParentIdBelongsToChildFolder(folderID, checkedFolderId) {
+async function checkParentIdBelongsToChildFolder(folderId, checkedFolderId) {
 	const checkedFolder = await FolderModel.findOne({ _id: checkedFolderId });
 	console.log(checkedFolder);
 	if (!checkedFolder) {
 		throw new Error(`Error while searching folder with _id '${checkedFolderId}'`);
 	}
-	if (!checkedFolder.parentID) {
+	if (!checkedFolder.parentId) {
 		return false;
-	} else if (checkedFolder.parentID.toString() === folderID) {
+	} else if (checkedFolder.parentId.toString() === folderId) {
 		return true;
 	} else {
-		return await checkParentIdBelongsToChildFolder(folderID, checkedFolder.parentID);
+		return await checkParentIdBelongsToChildFolder(folderId, checkedFolder.parentId);
 	}
 }

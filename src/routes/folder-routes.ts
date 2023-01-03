@@ -6,6 +6,6 @@ const router = express.Router();
 router.post("/create", folderController.createFolder);
 router.delete("/delete/:id", folderController.deleteFolder);
 router.post("/rename", folderController.updateFolderName);
-router.post("/move", folderController.updateFolderParentID);
+router.post("/move", folderController.updateFolderParentId);
 
 export default router;

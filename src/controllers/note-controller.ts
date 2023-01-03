@@ -4,28 +4,28 @@ import { NoteModel } from "../models/Note";
 import { checkFolderExists, checkValidObjetId } from "./common-helpers";
 
 /**
- * Creates a note with the  `title` and `parentID` provided in `req.body`.
+ * Creates a note with the  `title` and `parentId` provided in `req.body`.
  *  Then it returns the newly created note.
  *
  * @returns The newly created note
  */
 async function createNote(req: Request, res: Response, next: NextFunction) {
-	const { title, parentID } = req.body;
+	const { title, parentId } = req.body;
 
 	const note = new NoteModel({
-		parentID: null,
+		parentId: null,
 		title,
 		createdTime: Date.now().toString(),
 		lastUpdatedTime: Date.now().toString(),
 		content: [],
 	});
-	if (parentID.length) {
+	if (parentId.length) {
 		try {
-			await checkFolderExists(parentID);
+			await checkFolderExists(parentId);
 		} catch (error) {
 			return res.status(400).json({ error: (<Error>error).message });
 		}
-		note.parentID = new mongoose.Types.ObjectId(parentID);
+		note.parentId = new mongoose.Types.ObjectId(parentId);
 	}
 
 	return note
@@ -41,9 +41,9 @@ async function createNote(req: Request, res: Response, next: NextFunction) {
  * @returns The deleted note.
  */
 function deleteNote(req: Request, res: Response, next: NextFunction) {
-	const noteID = req.params.id;
+	const noteId = req.params.id;
 	try {
-		checkValidObjetId(noteID);
+		checkValidObjetId(noteId);
 	} catch (error) {
 		return res.status(400).json({ error: (<Error>error).message });
 	}
@@ -52,7 +52,7 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
 		.then((note) =>
 			note
 				? res.status(201).json({ note, message: "Note deleted" })
-				: res.status(404).json({ message: `Note with _id '${noteID}' not found` })
+				: res.status(404).json({ message: `Note with _id '${noteId}' not found` })
 		)
 		.catch((error) => res.status(500).json({ error }));
 }
@@ -123,37 +123,37 @@ function updateNoteTitle(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Updates the `parentID` of the note matching the `_id`. Both fields provided in
+ * Updates the `parentId` of the note matching the `_id`. Both fields provided in
  * 	`req.body`. Then it returns the updated note.
  *  Returns an error if no folder matching the provided `_id` is found, if the common
- * 		checks fail or if the `parentID` and `_id` contain the same value.
+ * 		checks fail or if the `parentId` and `_id` contain the same value.
  *
  *
  * @returns The updated note.
  */
-async function updateNoteParentID(req: Request, res: Response, next: NextFunction) {
-	const { _id, parentID } = req.body;
+async function updateNoteParentId(req: Request, res: Response, next: NextFunction) {
+	const { _id, parentId } = req.body;
 	let parentObjectId: Types.ObjectId | null = null;
 
-	if (parentID === _id) {
+	if (parentId === _id) {
 		return res.status(400).json({ message: "A Note cannot be its own parent" });
 	}
 
 	//TODO: Might be worth to refactor to another function?
-	if (parentID.length) {
+	if (parentId.length) {
 		try {
 			checkValidObjetId(_id);
-			await checkFolderExists(parentID);
+			await checkFolderExists(parentId);
 		} catch (error) {
 			return res.status(400).json({ error: (<Error>error).message });
 		}
-		parentObjectId = new mongoose.Types.ObjectId(parentID);
+		parentObjectId = new mongoose.Types.ObjectId(parentId);
 	}
 
 	return NoteModel.findOneAndUpdate(
 		{ _id: _id },
 		{
-			parentID: parentObjectId,
+			parentId: parentObjectId,
 			lastUpdatedTime: Date.now().toString(),
 		},
 		{ new: true }
@@ -171,5 +171,5 @@ export const noteController = {
 	deleteNote,
 	updateNoteContent,
 	updateNoteTitle,
-	updateNoteParentID,
+	updateNoteParentId,
 };
