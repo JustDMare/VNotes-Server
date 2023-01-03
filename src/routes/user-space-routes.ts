@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post("/create", userSpaceController.createUserSpace);
 router.delete("/delete/:id", userSpaceController.deteleUserSpace);
-router.get("/content/:token", userSpaceController.findAllUserSpaceContent);
+router.get("/:token", userSpaceController.findAllUserSpaceContent);
 
 export default router;
