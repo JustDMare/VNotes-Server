@@ -51,12 +51,12 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
 async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
 	const userToken = req.params.token;
 
-	const userSpaceDoc = await UserSpaceModel.findOne({ userToken });
-	if (!userSpaceDoc) {
+	const userSpace = await UserSpaceModel.findOne({ userToken }).lean();
+	if (!userSpace) {
 		return res.status(404).json({ message: `User space with userToken '${userToken}' not found` });
 	}
 
-	const userFolders: FolderSchema[] = await FolderModel.find({ userSpaceId: userSpaceDoc._id })
+	const userFolders: FolderSchema[] = await FolderModel.find({ userSpaceId: userSpace._id })
 		.sort({
 			name: 1,
 		})
@@ -64,7 +64,7 @@ async function findAllUserSpaceContent(req: Request, res: Response, next: NextFu
 		.lean();
 
 	const userNotes: Omit<NoteSchema, "content">[] = await NoteModel.find({
-		userSpaceId: userSpaceDoc._id,
+		userSpaceId: userSpace._id,
 	})
 		.sort({
 			title: 1,
@@ -76,9 +76,14 @@ async function findAllUserSpaceContent(req: Request, res: Response, next: NextFu
 	console.log(folders);
 	const notes: NavigationNoteReference[] = normaliseNotes(userNotes);
 	const contentTree = createContentTree(folders, notes);
-	return res.status(200).json({ contentTree });
+	return res.status(200).json({ userSpace, contentTree });
 }
-
+/**
+ * Converts the `FolderSchema` array into an array of folders implementing the `Folder`
+ *  interface, normalising and adding the necessary properties.
+ * @param folders array of folders implementing the `FolderSchema` interface.
+ * @returns array that implements the `Folder` interface.
+ */
 function normaliseFolders(folders: FolderSchema[]): Folder[] {
 	return folders.map((folder) => {
 		const normalisedFolder: Folder = {
@@ -92,6 +97,13 @@ function normaliseFolders(folders: FolderSchema[]): Folder[] {
 	});
 }
 
+/**
+ * Converts the `Omit<NoteSchema, "content">` (`NoteSchema` omitting the `content` property)
+ * 	array into an array of notes implementing the `NavigationNoteReference` interface,
+ * 	normalising and adding the necessary properties.
+ * @param notes array of notes implementing the `Omit<NoteSchema, "content">` interface.
+ * @returns array that implements the `NavigationNoteReference` interface.
+ */
 function normaliseNotes(notes: Omit<NoteSchema, "content">[]): NavigationNoteReference[] {
 	return notes.map((note) => {
 		const normalisedNote: NavigationNoteReference = {
@@ -103,13 +115,21 @@ function normaliseNotes(notes: Omit<NoteSchema, "content">[]): NavigationNoteRef
 	});
 }
 
+/**
+ * Takes the arrays of `Folder` and `NavigationNoteReference` and generates a tree
+ * 	of folders, subfolders and notes for the frontend to use as the navigation tree
+ * 	in the sidebar. Folders and notes with no parent are considered to be at root level.
+ *
+ * @param folders array implementing the `Folder` interface.
+ * @param notes array implementing the `NavigationNoteReference` interface.
+ * @returns
+ */
 function createContentTree(folders: Folder[], notes: NavigationNoteReference[]) {
 	const hashTable = Object.create(null);
 
 	folders.forEach((folder) => (hashTable[folder._id] = folder));
-	notes.forEach((note) => (hashTable[note._id] = note));
-
 	const contentTree = { folders: [], notes: [] };
+
 	folders.forEach((folder) => {
 		if (folder.parentId) {
 			hashTable[folder.parentId].content.folders.push(hashTable[folder._id]);
@@ -121,11 +141,11 @@ function createContentTree(folders: Folder[], notes: NavigationNoteReference[]) 
 	});
 	notes.forEach((note) => {
 		if (note.parentId) {
-			hashTable[note.parentId].content.notes.push(hashTable[note._id]);
+			hashTable[note.parentId].content.notes.push(note);
 			(<Folder>hashTable[note.parentId]).numberOfItems += 1;
 		} else {
 			//@ts-ignore
-			contentTree.notes.push(hashTable[note._id]);
+			contentTree.notes.push(note);
 		}
 	});
 	return contentTree;
