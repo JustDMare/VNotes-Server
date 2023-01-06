@@ -4,7 +4,8 @@ import { FolderSchema } from "vnotes-types";
 import Logger from "../common/logger";
 
 const folderSchema = new Schema<FolderSchema>({
-	parentID: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
+	parentId: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
+	userSpaceId: { type: mongoose.Types.ObjectId, required: true, ref: "User_Space" },
 	name: { type: String, required: true },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },
@@ -23,19 +24,19 @@ folderSchema.pre("save", function (next) {
 
 /**
  * Hook executed prior to the removal of a folder.
- * Finds all Notes and Folders that have as their parentID the folder that is being removed
+ * Finds all Notes and Folders that have as their parentId the folder that is being removed
  * 	and removes them as well. Triggers this same hook for all the removed subfolders.
  */
 //Pre hook to remove all notes and folders that reference to the deleted one
 folderSchema.pre("remove", { document: true, query: false }, function (next) {
 	const folderId = this._id;
 	console.log(folderId);
-	NoteModel.find({ parentID: folderId }).then((notes) => {
+	NoteModel.find({ parentId: folderId }).then((notes) => {
 		notes.forEach((note) =>
 			note.remove().then((note) => Logger.log(`[CASCADE DELETE] - Deleted note: ${note._id}`))
 		);
 	});
-	FolderModel.find({ parentID: folderId }).then((folders) => {
+	FolderModel.find({ parentId: folderId }).then((folders) => {
 		folders.forEach((folder) =>
 			folder
 				.remove()

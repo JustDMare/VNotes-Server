@@ -12,7 +12,8 @@ const blockSchema = new Schema<BlockSchema>({
 });
 
 const noteSchema = new Schema<NoteSchema>({
-	parentID: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
+	parentId: { type: mongoose.Types.ObjectId, required: false, ref: "Folder" },
+	userSpaceId: { type: mongoose.Types.ObjectId, required: true, ref: "User_Space" },
 	title: { type: String, required: false },
 	createdTime: { type: String, required: true },
 	lastUpdatedTime: { type: String, required: true },

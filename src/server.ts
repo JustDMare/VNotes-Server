@@ -8,6 +8,7 @@ import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import noteRoutes from "./routes/note-routes";
 import folderRoutes from "./routes/folder-routes";
+import userSpaceRoutes from "./routes/user-space-routes";
 
 const REQUEST_LIMIT_PERIOD = 15 * 60 * 1000; //15min * 60s * 1000ms
 export const router = express();
@@ -51,6 +52,7 @@ export default function startServer(): void {
 
 	router.use("/notes", noteRoutes);
 	router.use("/folders", folderRoutes);
+	router.use("/user-space", userSpaceRoutes);
 
 	/** Healthcheck */
 	router.get("/ping", (req, res, next) => res.status(200).json({ ping: "pong" }));

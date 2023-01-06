@@ -1,4 +1,3 @@
-import { green } from "./../../.history/src/common/logger_20221206201511";
 export default class Logger {
 	static consoleColorReset = "\x1b[0m";
 	static consoleColorBlack = "\x1b[30m";
