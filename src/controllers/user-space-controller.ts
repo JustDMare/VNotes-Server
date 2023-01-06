@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import Logger from "../common/logger";
 import { FolderModel } from "../models/Folder";
 import { NoteModel } from "../models/Note";
-import { FolderSchema, NoteSchema } from "vnotes-types";
+import { Folder, FolderSchema, NavigationNoteReference, NoteSchema } from "vnotes-types";
 
 /**
  * Creates a user space with the `userToken` provided in `req.body`.
@@ -56,46 +56,79 @@ async function findAllUserSpaceContent(req: Request, res: Response, next: NextFu
 		return res.status(404).json({ message: `User space with userToken '${userToken}' not found` });
 	}
 
-	const userFoldersDocs = await FolderModel.find({ userSpaceId: userSpaceDoc._id })
+	const userFolders: FolderSchema[] = await FolderModel.find({ userSpaceId: userSpaceDoc._id })
 		.sort({
 			name: 1,
 		})
 		.select({ __v: 0 })
 		.lean();
-	const userNotesDocs = await NoteModel.find({ userSpaceId: userSpaceDoc._id })
+
+	const userNotes: Omit<NoteSchema, "content">[] = await NoteModel.find({
+		userSpaceId: userSpaceDoc._id,
+	})
 		.sort({
 			title: 1,
 		})
 		.select({ content: 0, __v: 0 })
 		.lean();
 
-	const dataTree = createDataTree(userFoldersDocs, userNotesDocs);
-	return res.status(200).json({ dataTree });
+	const folders: Folder[] = normaliseFolders(userFolders);
+	console.log(folders);
+	const notes: NavigationNoteReference[] = normaliseNotes(userNotes);
+	const contentTree = createContentTree(folders, notes);
+	return res.status(200).json({ contentTree });
 }
 
-function createDataTree(folders: FolderSchema[], notes: NoteSchema[]) {
+function normaliseFolders(folders: FolderSchema[]): Folder[] {
+	return folders.map((folder) => {
+		const normalisedFolder: Folder = {
+			...folder,
+			_id: String(folder._id),
+			parentId: folder.parentId ? String(folder.parentId) : undefined,
+			numberOfItems: 0,
+			content: { folders: [], notes: [] },
+		};
+		return normalisedFolder;
+	});
+}
+
+function normaliseNotes(notes: Omit<NoteSchema, "content">[]): NavigationNoteReference[] {
+	return notes.map((note) => {
+		const normalisedNote: NavigationNoteReference = {
+			...note,
+			_id: String(note._id),
+			parentId: note.parentId ? String(note.parentId) : undefined,
+		};
+		return normalisedNote;
+	});
+}
+
+function createContentTree(folders: Folder[], notes: NavigationNoteReference[]) {
 	const hashTable = Object.create(null);
-	folders.forEach(
-		(folder) =>
-			(hashTable[folder._id] = {
-				...folder,
-				content: { folders: [], notes: [] },
-			})
-	);
-	notes.forEach((aData) => (hashTable[aData._id] = { ...aData }));
-	const dataTree = { folders: [], notes: [] };
+
+	folders.forEach((folder) => (hashTable[folder._id] = folder));
+	notes.forEach((note) => (hashTable[note._id] = note));
+
+	const contentTree = { folders: [], notes: [] };
 	folders.forEach((folder) => {
-		if (folder.parentId)
-			hashTable[folder.parentId.toString()].content.folders.push(hashTable[folder._id]);
-		//@ts-ignore
-		else dataTree.folders.push(hashTable[folder._id]);
+		if (folder.parentId) {
+			hashTable[folder.parentId].content.folders.push(hashTable[folder._id]);
+			(<Folder>hashTable[folder.parentId]).numberOfItems += 1;
+		} else {
+			//@ts-ignore
+			contentTree.folders.push(hashTable[folder._id]);
+		}
 	});
 	notes.forEach((note) => {
-		if (note.parentId) hashTable[note.parentId.toString()].content.notes.push(hashTable[note._id]);
-		//@ts-ignore
-		else dataTree.notes.push(hashTable[note._id]);
+		if (note.parentId) {
+			hashTable[note.parentId].content.notes.push(hashTable[note._id]);
+			(<Folder>hashTable[note.parentId]).numberOfItems += 1;
+		} else {
+			//@ts-ignore
+			contentTree.notes.push(hashTable[note._id]);
+		}
 	});
-	return dataTree;
+	return contentTree;
 }
 
 export const userSpaceController = { createUserSpace, deteleUserSpace, findAllUserSpaceContent };
