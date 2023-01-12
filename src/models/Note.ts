@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import { BlockSchema, BLOCK_TYPES, NoteSchema } from "vnotes-types";
 
 const blockSchema = new Schema<BlockSchema>({
+  _id: { type: String, required: true },
   type: { type: String, enum: BLOCK_TYPES, required: true },
   content: { type: String },
   uniqueProperties: {
