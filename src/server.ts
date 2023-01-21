@@ -23,7 +23,7 @@ export default function startServer(): void {
 
 	// Limit requests done to the same endpoint
 	const limiter = rateLimit({
-		max: 100,
+		max: 200,
 		windowMs: REQUEST_LIMIT_PERIOD,
 		message: "This IP has performed too many requests, please try again in 15 minutes",
 	});
