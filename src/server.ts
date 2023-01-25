@@ -9,16 +9,23 @@ import cookieParser from "cookie-parser";
 import noteRoutes from "./routes/note-routes";
 import folderRoutes from "./routes/folder-routes";
 import userSpaceRoutes from "./routes/user-space-routes";
+import {auth} from "express-oauth2-jwt-bearer"
+
 
 const REQUEST_LIMIT_PERIOD = 15 * 60 * 1000; //15min * 60s * 1000ms
 export const router = express();
+
+export const checkJwt = auth({
+  audience: process.env.AUTH0_AUDIENCE,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+});
 
 export default function startServer(): void {
 	//For the moment CORS will allow connections from everywhere
 	router.use(cors());
 	router.options("*", cors());
 
-	//Setting HTTP headers for security
+	//Setting some basic HTTP headers for security
 	router.use(helmet());
 
 	// Limit requests done to the same endpoint

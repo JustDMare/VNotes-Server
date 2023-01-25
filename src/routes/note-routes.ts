@@ -1,5 +1,6 @@
 import { noteController } from "../controllers/note-controller";
 import express from "express";
+import {checkJwt} from "../server"
 
 const router = express.Router();
 
