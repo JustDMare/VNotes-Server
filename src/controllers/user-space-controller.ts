@@ -50,6 +50,7 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
  */
 async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
   const userToken = req.params.token;
+  console.log(req.auth?.payload.sub);
 
   const userSpace = await UserSpaceModel.findOne({ userToken }).lean();
   if (!userSpace) {
@@ -100,9 +101,9 @@ function normaliseFolders(folders: FolderSchema[]): Folder[] {
 }
 
 /**
- * Converts the `Omit<NoteSchema, "content">` (`NoteSchema` omitting the `content` property)
- * 	array into an array of notes implementing the `NavigationNoteReference` interface,
- * 	normalising and adding the necessary properties.
+ * Converts the `Omit<NoteSchema, "content">` (`NoteSchema` omitting the `content`
+ *  property) array into an array of notes implementing the `NavigationNoteReference`
+ *  interface, normalising and adding the necessary properties.
  * @param notes array of notes implementing the `Omit<NoteSchema, "content">` interface.
  * @returns array that implements the `NavigationNoteReference` interface.
  */
@@ -118,9 +119,9 @@ function normaliseNotes(notes: Omit<NoteSchema, "content">[]): NavigationNoteRef
 }
 
 /**
- * Takes the arrays of `Folder` and `NavigationNoteReference` and generates a tree
- * 	of folders, subfolders and notes for the frontend to use as the navigation tree
- * 	in the sidebar. Folders and notes with no parent are considered to be at root level.
+ * Takes the arrays of `Folder` and `NavigationNoteReference` and generates a tree of
+ *  folders, subfolders and notes for the frontend to use as the navigation tree in the
+ *  sidebar. Folders and notes with no parent are considered to be at root level.
  *
  * @param folders array implementing the `Folder` interface.
  * @param notes array implementing the `NavigationNoteReference` interface.
