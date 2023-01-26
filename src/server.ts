@@ -14,11 +14,6 @@ import { auth } from "express-oauth2-jwt-bearer";
 const REQUEST_LIMIT_PERIOD = 15 * 60 * 1000; //15min * 60s * 1000ms
 export const router = express();
 
-export const checkJwt = auth({
-  audience: process.env.AUTH0_AUDIENCE,
-  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-});
-
 export default function startServer(): void {
   //For the moment CORS will allow connections from everywhere
   router.use(cors());
@@ -55,6 +50,13 @@ export default function startServer(): void {
   router.use(express.urlencoded({ extended: true }));
   router.use(express.json());
   router.use(cookieParser());
+
+  router.use(
+    auth({
+      audience: process.env.AUTH0_AUDIENCE,
+      issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+    })
+  );
 
   router.use("/notes", noteRoutes);
   router.use("/folders", folderRoutes);

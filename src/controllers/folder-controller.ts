@@ -54,15 +54,11 @@ async function deleteFolder(req: Request, res: Response, next: NextFunction) {
 
   const folder = await FolderModel.findOne({ _id: folderId });
   if (!folder) {
-    return res
-      .status(404)
-      .json({ message: `Folder with _id '${folderId}' not found` });
+    return res.status(404).json({ message: `Folder with _id '${folderId}' not found` });
   }
   folder
     .remove()
-    .then((folder) =>
-      res.status(201).json({ folder, message: `Folder deleted` })
-    )
+    .then((folder) => res.status(201).json({ folder, message: `Folder deleted` }))
     .catch((error) => res.status(500).json({ error: error.message }));
 }
 
@@ -93,9 +89,7 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
     .then((folder) =>
       folder
         ? res.status(201).json({ folder, message: "Folder renamed" })
-        : res
-            .status(404)
-            .json({ message: `Folder with _id '${_id}' not found` })
+        : res.status(404).json({ message: `Folder with _id '${_id}' not found` })
     )
     .catch((error) => res.status(500).json({ error: error.message }));
 }
@@ -108,18 +102,12 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
  *
  * @returns the updated folder.
  */
-async function updateFolderParentId(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+async function updateFolderParentId(req: Request, res: Response, next: NextFunction) {
   const { _id, parentId } = req.body;
   let parentObjectId: Types.ObjectId | null = null;
 
   if (parentId === _id) {
-    return res
-      .status(400)
-      .json({ message: "A Folder cannot be its own parent" });
+    return res.status(400).json({ message: "A Folder cannot be its own parent" });
   }
 
   if (parentId && parentId.length) {
@@ -129,8 +117,7 @@ async function updateFolderParentId(
     } catch (error) {
       return res.status(400).json({ error: (<Error>error).message });
     }
-    const parentIdBelongsToChildFolder =
-      await checkParentIdBelongsToChildFolder(_id, parentId);
+    const parentIdBelongsToChildFolder = await checkParentIdBelongsToChildFolder(_id, parentId);
     if (parentIdBelongsToChildFolder) {
       console.log("a");
       return res.status(400).json({
@@ -151,9 +138,7 @@ async function updateFolderParentId(
     .then((folder) =>
       folder
         ? res.status(201).json({ folder, message: "Folder moved" })
-        : res
-            .status(404)
-            .json({ message: `Folder with _id '${_id}' not found` })
+        : res.status(404).json({ message: `Folder with _id '${_id}' not found` })
     )
     .catch((error) => res.status(500).json({ error: error.message }));
 }
@@ -178,18 +163,13 @@ async function checkParentIdBelongsToChildFolder(folderId, checkedFolderId) {
   const checkedFolder = await FolderModel.findOne({ _id: checkedFolderId });
   console.log(checkedFolder);
   if (!checkedFolder) {
-    throw new Error(
-      `Error while searching folder with _id '${checkedFolderId}'`
-    );
+    throw new Error(`Error while searching folder with _id '${checkedFolderId}'`);
   }
   if (!checkedFolder.parentId) {
     return false;
   } else if (checkedFolder.parentId.toString() === folderId) {
     return true;
   } else {
-    return await checkParentIdBelongsToChildFolder(
-      folderId,
-      checkedFolder.parentId
-    );
+    return await checkParentIdBelongsToChildFolder(folderId, checkedFolder.parentId);
   }
 }

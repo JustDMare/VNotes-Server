@@ -11,9 +11,7 @@ function findNote(req: Request, res: Response, next: NextFunction) {
   return NoteModel.findById(req.params.id)
     .then((note) =>
       //TODO: Check all the status messages in case they can be done better
-      note
-        ? res.status(201).json({ note })
-        : res.status(404).json("Note not found")
+      note ? res.status(201).json({ note }) : res.status(404).json("Note not found")
     )
     .catch((error) => res.status(500).json({ error: error.message }));
 }
@@ -68,9 +66,7 @@ function deleteNote(req: Request, res: Response, next: NextFunction) {
     .then((note) =>
       note
         ? res.status(201).json({ note, message: "Note deleted" })
-        : res
-            .status(404)
-            .json({ message: `Note with _id '${noteId}' not found` })
+        : res.status(404).json({ message: `Note with _id '${noteId}' not found` })
     )
     .catch((error) => res.status(500).json({ error: error.message }));
 }
@@ -101,9 +97,7 @@ function updateNoteContent(req: Request, res: Response, next: NextFunction) {
         .then((note) =>
           note
             ? res.status(201).json({ note, message: "Note updated" })
-            : res
-                .status(404)
-                .json({ message: `Note with _id '${_id}' not found` })
+            : res.status(404).json({ message: `Note with _id '${_id}' not found` })
         )
         .catch((error) => res.status(500).json({ error: error.message }));
     }
@@ -151,11 +145,7 @@ function updateNoteTitle(req: Request, res: Response, next: NextFunction) {
  *
  * @returns The updated note.
  */
-async function updateNoteParentId(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+async function updateNoteParentId(req: Request, res: Response, next: NextFunction) {
   const { _id, parentId } = req.body;
   let parentObjectId: Types.ObjectId | null = null;
 

@@ -35,9 +35,7 @@ blockSchema.pre("save", function (next) {
     this.type === "checkbox" &&
     (!this.uniqueProperties || this.uniqueProperties.selected === undefined)
   ) {
-    const error = new Error(
-      "'selected' property is required for checkbox blocks"
-    );
+    const error = new Error("'selected' property is required for checkbox blocks");
     next(error);
   }
   next();
