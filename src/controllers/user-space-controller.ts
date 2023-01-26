@@ -49,12 +49,12 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
  * @returns the user space data and a tree-like structure containing the folders and notes belonging to that space.
  */
 async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
-  const userToken = req.params.token;
+  const authSubject = req.auth?.payload.sub;
   console.log(req.auth?.payload.sub);
 
-  const userSpace = await UserSpaceModel.findOne({ userToken }).lean();
+  let userSpace = await UserSpaceModel.findOne({ authSubject }).lean();
   if (!userSpace) {
-    return res.status(404).json({ message: `User space with userToken '${userToken}' not found` });
+    userSpace = await new UserSpaceModel({ authSubject }).save();
   }
 
   const userFolders: FolderSchema[] = await FolderModel.find({
