@@ -12,7 +12,8 @@ import { Folder, FolderSchema, NavigationNoteReference, NoteSchema } from "vnote
  * @returns The newly created user space
  */
 async function createUserSpace(req: Request, res: Response, next: NextFunction) {
-  const userSpace = new UserSpaceModel({ userToken: req.body.userToken });
+  const authSubject = req.auth?.payload.sub;
+  const userSpace = new UserSpaceModel({ authSubject });
   return userSpace
     .save()
     .then((userSpace) => res.status(201).json({ userSpace }))
@@ -30,11 +31,13 @@ async function createUserSpace(req: Request, res: Response, next: NextFunction) 
  */
 //TODO: Create a middleware to delete everything related to this space (Notes/folders)
 async function deteleUserSpace(req: Request, res: Response, next: NextFunction) {
-  const userToken = req.params.token;
+  const authSubject = req.auth?.payload.sub;
 
-  const userSpace = await UserSpaceModel.findOne({ userToken });
+  const userSpace = await UserSpaceModel.findOne({ authSubject });
   if (!userSpace) {
-    return res.status(404).json({ message: `User space with userToken '${userToken}' not found` });
+    return res
+      .status(404)
+      .json({ message: `User space with userToken '${authSubject}' not found` });
   }
   userSpace
     .remove()
@@ -50,7 +53,6 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
  */
 async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
   const authSubject = req.auth?.payload.sub;
-  console.log(req.auth?.payload.sub);
 
   let userSpace = await UserSpaceModel.findOne({ authSubject }).lean();
   if (!userSpace) {

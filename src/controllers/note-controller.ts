@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
 import { NoteModel } from "../models/Note";
+import { UserSpaceModel } from "../models/UserSpace";
 import { checkFolderExists, checkValidObjetId } from "./common-helpers";
 
 /**
@@ -23,8 +24,15 @@ function findNote(req: Request, res: Response, next: NextFunction) {
  * @returns The newly created note
  */
 async function createNote(req: Request, res: Response, next: NextFunction) {
-  const { title, parentId, userSpaceId } = req.body;
-  //TODO: Check that userSpaceId exists in Mongo
+  const { title, parentId } = req.body;
+  const authSubject = req.auth?.payload.sub;
+
+  const userSpace = await UserSpaceModel.findOne({ authSubject });
+  if (!userSpace) {
+    return res.status(404).json({ message: `User space for this user has been not found` });
+  }
+  const userSpaceId = userSpace?._id;
+
   const note = new NoteModel({
     parentId: null,
     userSpaceId,

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
 import Logger from "../common/logger";
 import { FolderModel } from "../models/Folder";
+import { UserSpaceModel } from "../models/UserSpace";
 import { checkFolderExists, checkValidObjetId } from "./common-helpers";
 
 /**
@@ -11,9 +12,14 @@ import { checkFolderExists, checkValidObjetId } from "./common-helpers";
  * @returns The newly created folder
  */
 async function createFolder(req: Request, res: Response, next: NextFunction) {
-  const { name, parentId, userSpaceId } = req.body;
-  //TODO: Check that userSpaceId exists in Mongo
+  const { name, parentId } = req.body;
+  const authSubject = req.auth?.payload.sub;
 
+  const userSpace = await UserSpaceModel.findOne({ authSubject });
+  if (!userSpace) {
+    return res.status(404).json({ message: `User space for this user has been not found` });
+  }
+  const userSpaceId = userSpace?._id;
   const folder = new FolderModel({
     name,
     userSpaceId,
