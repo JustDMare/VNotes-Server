@@ -3,12 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import Logger from "../common/logger";
 import { FolderModel } from "../models/Folder";
 import { NoteModel } from "../models/Note";
-import {
-  Folder,
-  FolderSchema,
-  NavigationNoteReference,
-  NoteSchema,
-} from "vnotes-types";
+import { Folder, FolderSchema, NavigationNoteReference, NoteSchema } from "vnotes-types";
 
 /**
  * Creates a user space with the `userToken` provided in `req.body`.
@@ -16,12 +11,9 @@ import {
  *
  * @returns The newly created user space
  */
-async function createUserSpace(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const userSpace = new UserSpaceModel({ userToken: req.body.userToken });
+async function createUserSpace(req: Request, res: Response, next: NextFunction) {
+  const authSubject = req.auth?.payload.sub;
+  const userSpace = new UserSpaceModel({ authSubject });
   return userSpace
     .save()
     .then((userSpace) => res.status(201).json({ userSpace }))
@@ -38,24 +30,18 @@ async function createUserSpace(
  * @returns the deleted folder.
  */
 //TODO: Create a middleware to delete everything related to this space (Notes/folders)
-async function deteleUserSpace(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const userToken = req.params.token;
+async function deteleUserSpace(req: Request, res: Response, next: NextFunction) {
+  const authSubject = req.auth?.payload.sub;
 
-  const userSpace = await UserSpaceModel.findOne({ userToken });
+  const userSpace = await UserSpaceModel.findOne({ authSubject });
   if (!userSpace) {
     return res
       .status(404)
-      .json({ message: `User space with userToken '${userToken}' not found` });
+      .json({ message: `User space with userToken '${authSubject}' not found` });
   }
   userSpace
     .remove()
-    .then((userSpace) =>
-      res.status(201).json({ userSpace, message: `User Space deleted` })
-    )
+    .then((userSpace) => res.status(201).json({ userSpace, message: `User Space deleted` }))
     .catch((error) => res.status(500).json({ error: error.message }));
 }
 
@@ -65,18 +51,12 @@ async function deteleUserSpace(
  *
  * @returns the user space data and a tree-like structure containing the folders and notes belonging to that space.
  */
-async function findAllUserSpaceContent(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const userToken = req.params.token;
+async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
+  const authSubject = req.auth?.payload.sub;
 
-  const userSpace = await UserSpaceModel.findOne({ userToken }).lean();
+  let userSpace = await UserSpaceModel.findOne({ authSubject }).lean();
   if (!userSpace) {
-    return res
-      .status(404)
-      .json({ message: `User space with userToken '${userToken}' not found` });
+    userSpace = await new UserSpaceModel({ authSubject }).save();
   }
 
   const userFolders: FolderSchema[] = await FolderModel.find({
@@ -123,15 +103,13 @@ function normaliseFolders(folders: FolderSchema[]): Folder[] {
 }
 
 /**
- * Converts the `Omit<NoteSchema, "content">` (`NoteSchema` omitting the `content` property)
- * 	array into an array of notes implementing the `NavigationNoteReference` interface,
- * 	normalising and adding the necessary properties.
+ * Converts the `Omit<NoteSchema, "content">` (`NoteSchema` omitting the `content`
+ *  property) array into an array of notes implementing the `NavigationNoteReference`
+ *  interface, normalising and adding the necessary properties.
  * @param notes array of notes implementing the `Omit<NoteSchema, "content">` interface.
  * @returns array that implements the `NavigationNoteReference` interface.
  */
-function normaliseNotes(
-  notes: Omit<NoteSchema, "content">[]
-): NavigationNoteReference[] {
+function normaliseNotes(notes: Omit<NoteSchema, "content">[]): NavigationNoteReference[] {
   return notes.map((note) => {
     const normalisedNote: NavigationNoteReference = {
       ...note,
@@ -143,18 +121,15 @@ function normaliseNotes(
 }
 
 /**
- * Takes the arrays of `Folder` and `NavigationNoteReference` and generates a tree
- * 	of folders, subfolders and notes for the frontend to use as the navigation tree
- * 	in the sidebar. Folders and notes with no parent are considered to be at root level.
+ * Takes the arrays of `Folder` and `NavigationNoteReference` and generates a tree of
+ *  folders, subfolders and notes for the frontend to use as the navigation tree in the
+ *  sidebar. Folders and notes with no parent are considered to be at root level.
  *
  * @param folders array implementing the `Folder` interface.
  * @param notes array implementing the `NavigationNoteReference` interface.
  * @returns
  */
-function createContentTree(
-  folders: Folder[],
-  notes: NavigationNoteReference[]
-) {
+function createContentTree(folders: Folder[], notes: NavigationNoteReference[]) {
   const hashTable = Object.create(null);
 
   folders.forEach((folder) => (hashTable[folder._id] = folder));
