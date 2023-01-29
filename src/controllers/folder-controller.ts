@@ -102,9 +102,12 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
 
 /**
  * Updates the `parentId` of the folder matching the `_id`. Both fields provided in
- * 	`req.body`. Then it returns the updated folder.
- * Returns an error if no folder matching the provided `_id` is found, if the common
- * 		checks fail or if the `parentId` and `_id` contain the same value.
+ *  `req.body`. Then it returns the updated folder. Returns an error if:
+ * 1. No folder matching the provided `_id` is found
+ * 2. The common checks fail
+ * 3. The `parentId` and `_id` contain the same value.
+ * 4. The `parentId` represents a folder that is a (direct or indirect) child  of the
+ *    folder represented by `_id`. You can't move a folder inside one of its subfolders.
  *
  * @returns the updated folder.
  */
@@ -125,7 +128,6 @@ async function updateFolderParentId(req: Request, res: Response, next: NextFunct
     }
     const parentIdBelongsToChildFolder = await checkParentIdBelongsToChildFolder(_id, parentId);
     if (parentIdBelongsToChildFolder) {
-      console.log("a");
       return res.status(400).json({
         message: `Folder with _id '${_id}' is a parent Folder of '${parentId}', so it can't be moved`,
       });
@@ -158,16 +160,15 @@ export const folderController = {
 
 /**
  * Checks if the `parentId` given as a paremeter belongs to a child folder (be it a direct child or an indirect child).
- * 	This is done to avoid circular nesting by having a folder be a child of its own child.
+ * This is done to avoid circular nesting by having a folder be a child of its own child.
  * Returns false if `parentId` **does not** belong to a child folder. True otherwise.
  *
  * @param {string} folderId `_id` of the folder that is being checked as a parent of `checkedFolderId`
  * @param {string} checkedFolderId `_id` of the folder that is going to be checked as a child of `folderId`
  * @returns {boolean} false if `parentId` **does not** belong to a child folder. True otherwise.
  */
-async function checkParentIdBelongsToChildFolder(folderId, checkedFolderId) {
+async function checkParentIdBelongsToChildFolder(folderId: string, checkedFolderId: string) {
   const checkedFolder = await FolderModel.findOne({ _id: checkedFolderId });
-  console.log(checkedFolder);
   if (!checkedFolder) {
     throw new Error(`Error while searching folder with _id '${checkedFolderId}'`);
   }
@@ -176,6 +177,6 @@ async function checkParentIdBelongsToChildFolder(folderId, checkedFolderId) {
   } else if (checkedFolder.parentId.toString() === folderId) {
     return true;
   } else {
-    return await checkParentIdBelongsToChildFolder(folderId, checkedFolder.parentId);
+    return await checkParentIdBelongsToChildFolder(folderId, checkedFolder.parentId.toString());
   }
 }
