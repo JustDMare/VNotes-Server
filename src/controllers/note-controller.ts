@@ -188,8 +188,6 @@ async function updateNoteParentId(req: Request, res: Response, next: NextFunctio
     .catch((error) => res.status(500).json({ error: error.message }));
 }
 
-function checkNoteBelongsToUser(noteId: string, authUser: string) {}
-
 export const noteController = {
   findNote,
   createNote,
