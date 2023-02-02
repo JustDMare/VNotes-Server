@@ -84,7 +84,7 @@ function updateFolderName(req: Request, res: Response, next: NextFunction) {
     return res.status(400).json({ error: (<Error>error).message });
   }
 
-  return FolderModel.findOne(
+  return FolderModel.findOneAndUpdate(
     { _id: _id },
     {
       name,
