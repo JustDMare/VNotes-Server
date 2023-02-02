@@ -52,6 +52,7 @@ async function deteleUserSpace(req: Request, res: Response, next: NextFunction) 
  * @returns the user space data and a tree-like structure containing the folders and notes belonging to that space.
  */
 async function findAllUserSpaceContent(req: Request, res: Response, next: NextFunction) {
+  const locale = req.params.locale;
   const authSubject = req.auth?.payload.sub;
 
   let userSpace = await UserSpaceModel.findOne({ authSubject }).lean();
@@ -66,6 +67,7 @@ async function findAllUserSpaceContent(req: Request, res: Response, next: NextFu
       name: 1,
     })
     .select({ __v: 0 })
+    .collation({ locale, strength: 2, numericOrdering: true, caseLevel: true, caseFirst: "upper" })
     .lean();
 
   const userNotes: Omit<NoteSchema, "content">[] = await NoteModel.find({
@@ -75,6 +77,7 @@ async function findAllUserSpaceContent(req: Request, res: Response, next: NextFu
       title: 1,
     })
     .select({ content: 0, __v: 0 })
+    .collation({ locale, strength: 2, numericOrdering: true, caseLevel: true, caseFirst: "upper" })
     .lean();
 
   const folders: Folder[] = normaliseFolders(userFolders);

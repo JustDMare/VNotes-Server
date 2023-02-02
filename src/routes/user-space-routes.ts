@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post("/create", userSpaceController.createUserSpace);
 router.delete("/delete/", userSpaceController.deteleUserSpace);
-router.get("/", userSpaceController.findAllUserSpaceContent);
+router.get("/:locale", userSpaceController.findAllUserSpaceContent);
 
 export default router;
