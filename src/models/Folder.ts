@@ -1,3 +1,4 @@
+import { auth } from "express-oauth2-jwt-bearer";
 import { NoteModel } from "./Note";
 import mongoose, { Schema } from "mongoose";
 import { FolderSchema } from "vnotes-types";
@@ -26,23 +27,28 @@ folderSchema.pre("save", function (next) {
  * Hook executed prior to the removal of a folder. Finds all Notes and Folders that have
  * as their parentId the folder that is being removed and removes them as well. Triggers
  * this same hook for all the removed subfolders.
+ *
+ * Important to note that the `await` on `remove()` and `Promise.all` are necessary to ensure that
+ * the hook is executed for all the subfolders and subnotes *before* the parent folder is
+ * removed. Otherwise, only the first level items would be removed.
  */
-//Pre hook to remove all notes and folders that reference to the deleted one
-folderSchema.pre("remove", { document: true, query: false }, function (next) {
+//TODO: Add error handling in case a child could not be removed?
+folderSchema.pre("remove", { document: true, query: false }, async function (next) {
   const folderId = this._id;
-  console.log(folderId);
-  NoteModel.find({ parentId: folderId }).then((notes) => {
-    notes.forEach((note) =>
-      note.remove().then((note) => Logger.log(`[CASCADE DELETE] - Deleted note: ${note._id}`))
-    );
-  });
-  FolderModel.find({ parentId: folderId }).then((folders) => {
-    folders.forEach((folder) =>
-      folder
-        .remove()
-        .then((folder) => Logger.log(`[CASCADE DELETE] - Deleted folder: ${folder._id}`))
-    );
-  });
+  const childNotes = await NoteModel.find({ parentId: folderId });
+  const childFolders = await FolderModel.find({ parentId: folderId });
+  await Promise.all(
+    childNotes.map(async (note) => {
+      await note.remove();
+      Logger.log(`[CASCADE DELETE] - Deleted note: ${note._id}`);
+    })
+  );
+  await Promise.all(
+    childFolders.map(async (folder) => {
+      await folder.remove();
+      Logger.log(`[CASCADE DELETE] - Deleted folder: ${folder._id}`);
+    })
+  );
   next();
 });
 
