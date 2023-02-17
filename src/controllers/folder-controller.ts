@@ -1,3 +1,4 @@
+import { NoteModel } from "./../models/Note";
 import { NextFunction, Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
 import Logger from "../common/logger";
@@ -52,6 +53,14 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
  */
 async function deleteFolder(req: Request, res: Response, next: NextFunction) {
   const folderId = req.params.id;
+  const noteIdToCheckIfFolderIsParent = req.query.noteId;
+  let noteBelongsToFolder = false;
+  if (noteIdToCheckIfFolderIsParent) {
+    noteBelongsToFolder = await checkNoteBelongsToFolder(
+      folderId,
+      noteIdToCheckIfFolderIsParent.toString()
+    );
+  }
   try {
     checkValidObjetId(folderId);
   } catch (error) {
@@ -64,7 +73,9 @@ async function deleteFolder(req: Request, res: Response, next: NextFunction) {
   }
   folder
     .remove()
-    .then((folder) => res.status(201).json({ folder, message: `Folder deleted` }))
+    .then((folder) =>
+      res.status(201).json({ folder, noteBelongsToFolder, message: `Folder deleted` })
+    )
     .catch((error) => res.status(500).json({ error: error.message }));
 }
 
@@ -157,6 +168,36 @@ export const folderController = {
   updateFolderName,
   updateFolderParentId,
 };
+
+/**
+ * Checks if the `noteId` given as a parameter belongs to the folder whose `id` is
+ * `folderId`, either as a direct child or as a child of one of its subfolders. Returns
+ * true if the note belongs to the folder, false otherwise.
+ *
+ * Its main use is to check if, when deleting a folder, the `_id` of the note that is
+ * currently being accessed by the editor belongs to that folder and notify the frontend
+ * that it is going to be deleted as well.
+ *
+ * @param folderId `_id`` of the folder that is being checked as a parent of the note
+ * `noteId`
+ * @param noteId `_id` of the note that is being checked as a child of the folder
+ * `folderId`
+ * @returns true if the note (`noteId`) belongs to the folder (`folderId`), false
+ * otherwise.
+ */
+async function checkNoteBelongsToFolder(folderId: string, noteId: string) {
+  const note = await NoteModel.findOne({ _id: noteId });
+  if (!note) {
+    throw new Error(`Note with _id '${noteId}' not found`);
+  }
+  if (!note.parentId) {
+    return false;
+  }
+  if (note.parentId.toString() === folderId) {
+    return true;
+  }
+  return checkParentIdBelongsToChildFolder(folderId, note.parentId.toString());
+}
 
 /**
  * Checks if the `parentId` given as a paremeter belongs to a child folder (be it a direct child or an indirect child).
