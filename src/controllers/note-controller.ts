@@ -21,26 +21,10 @@ async function findNote(req: Request, res: Response, next: NextFunction) {
     if (!note) {
       return res.status(404).json("Note not found");
     }
-    const breadcrumbs: mongoose.Document[] = [];
-    if (note.parentId) {
-      const parentId = note.parentId.toString();
-      await generateNoteBreadcrumbs(parentId, breadcrumbs);
-    }
 
-    return res.status(201).json({ note, breadcrumbs });
+    return res.status(201).json({ note });
   } catch (error) {
     res.status(500).json({ error: (<Error>error).message });
-  }
-}
-//Either do this in a separate endpoint or do it in the frontend. Document this!!!!!!
-async function generateNoteBreadcrumbs(parentId: string, breadcrumbs: mongoose.Document[]) {
-  await checkFolderExists(parentId);
-  const parentFolder = await FolderModel.findById(parentId);
-  if (parentFolder) {
-    breadcrumbs.push(parentFolder);
-    if (parentFolder.parentId) {
-      await generateNoteBreadcrumbs(parentFolder.parentId.toString(), breadcrumbs);
-    }
   }
 }
 
