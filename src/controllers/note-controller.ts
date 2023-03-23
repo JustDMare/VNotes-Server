@@ -21,7 +21,6 @@ async function findNote(req: Request, res: Response, next: NextFunction) {
     if (!note) {
       return res.status(404).json("Note not found");
     }
-
     return res.status(201).json({ note });
   } catch (error) {
     res.status(500).json({ error: (<Error>error).message });
