@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
+import { FolderModel } from "../models/Folder";
 import { NoteModel } from "../models/Note";
 import { UserSpaceModel } from "../models/UserSpace";
 import { checkFolderExists, checkValidObjetId } from "./common-helpers";
@@ -8,13 +9,22 @@ import { checkFolderExists, checkValidObjetId } from "./common-helpers";
  * Retrieves the note whose `_id` matches the `id` given as a parameter.
  * @returns note whose `_id` matches the `id` given as a parameter.
  */
-function findNote(req: Request, res: Response, next: NextFunction) {
-  return NoteModel.findById(req.params.id)
-    .then((note) =>
-      //TODO: Check all the status messages in case they can be done better
-      note ? res.status(201).json({ note }) : res.status(404).json("Note not found")
-    )
-    .catch((error) => res.status(500).json({ error: error.message }));
+async function findNote(req: Request, res: Response, next: NextFunction) {
+  const noteId = req.params.id;
+  try {
+    checkValidObjetId(noteId);
+  } catch (error) {
+    return res.status(400).json({ error: (<Error>error).message });
+  }
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) {
+      return res.status(404).json("Note not found");
+    }
+    return res.status(201).json({ note });
+  } catch (error) {
+    res.status(500).json({ error: (<Error>error).message });
+  }
 }
 
 /**
