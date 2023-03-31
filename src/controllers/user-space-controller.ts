@@ -83,8 +83,8 @@ async function findAllUserSpaceContent(req: Request, res: Response, next: NextFu
   const folders: Folder[] = normaliseFolders(userFolders);
   console.log(folders);
   const notes: NavigationNoteReference[] = normaliseNotes(userNotes);
-  const contentTree = createContentTree(folders, notes);
-  return res.status(200).json({ userSpace, contentTree });
+  const { parentHashTable, contentTree } = createContentTree(folders, notes);
+  return res.status(200).json({ userSpace, contentTree, parentHashTable });
 }
 /**
  * Converts the `FolderSchema` array into an array of folders implementing the `Folder`
@@ -128,35 +128,43 @@ function normaliseNotes(notes: Omit<NoteSchema, "content">[]): NavigationNoteRef
  *  folders, subfolders and notes for the frontend to use as the navigation tree in the
  *  sidebar. Folders and notes with no parent are considered to be at root level.
  *
+ * It also returns a hash table that relates each element's id with its parent's id for
+ * easier lookups in the frontend.
+ *
  * @param folders array implementing the `Folder` interface.
  * @param notes array implementing the `NavigationNoteReference` interface.
- * @returns
+ * @returns the content tree and the hash table relating the element and its parentId
  */
 function createContentTree(folders: Folder[], notes: NavigationNoteReference[]) {
-  const hashTable = Object.create(null);
+  const folderHashTable = Object.create(null);
+  const parentHashTable = Object.create(null);
 
-  folders.forEach((folder) => (hashTable[folder._id] = folder));
+  folders.forEach((folder) => {
+    folderHashTable[folder._id] = folder;
+    parentHashTable[folder._id] = folder.parentId ? folder.parentId : null;
+  });
   const contentTree = { folders: [], notes: [] };
 
   folders.forEach((folder) => {
     if (folder.parentId) {
-      hashTable[folder.parentId].content.folders.push(hashTable[folder._id]);
-      (<Folder>hashTable[folder.parentId]).numberOfItems += 1;
+      folderHashTable[folder.parentId].content.folders.push(folderHashTable[folder._id]);
+      (<Folder>folderHashTable[folder.parentId]).numberOfItems += 1;
     } else {
       //@ts-ignore
-      contentTree.folders.push(hashTable[folder._id]);
+      contentTree.folders.push(folderHashTable[folder._id]);
     }
   });
   notes.forEach((note) => {
+    parentHashTable[note._id] = note.parentId;
     if (note.parentId) {
-      hashTable[note.parentId].content.notes.push(note);
-      (<Folder>hashTable[note.parentId]).numberOfItems += 1;
+      folderHashTable[note.parentId].content.notes.push(note);
+      (<Folder>folderHashTable[note.parentId]).numberOfItems += 1;
     } else {
       //@ts-ignore
       contentTree.notes.push(note);
     }
   });
-  return contentTree;
+  return { parentHashTable, contentTree };
 }
 
 export const userSpaceController = {
