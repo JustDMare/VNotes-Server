@@ -32,7 +32,6 @@ folderSchema.pre("save", function (next) {
  * the hook is executed for all the subfolders and subnotes *before* the parent folder is
  * removed. Otherwise, only the first level items would be removed.
  */
-//TODO: Add error handling in case a child could not be removed?
 folderSchema.pre("remove", { document: true, query: false }, async function (next) {
   const folderId = this._id;
   const childNotes = await NoteModel.find({ parentId: folderId });
