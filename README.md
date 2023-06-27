@@ -45,13 +45,11 @@ Then, with the information from the Auth0 Application and API, you'll need an .e
 
 You will need to setup an Atlas Cluster Database. There are no specific requirements for it, the only thing you'll need is to add the following fields to the .env file:
 
-
 `MONGO_USERNAME` -> Username of a Cluster User (preferably admin).
 `MONGO_PASSWORD` -> Password of the Cluster User.
 `MONGO_DB` -> Name of the DB you want the API to create on the Cluster.
 
 `SERVER_PORT="3030"` -> Not a requirement for Mongo, but it is needed to choose the port at which the API will be launched. Just make sure that it is NOT port 3000, as it is needed by the frontend.
-
 
 ### Running the application
 
@@ -66,3 +64,5 @@ After the installation is complete, you only have to execute the following comma
 ```sh
 npm run dev
 ```
+
+If you need to restart the server, because of an error or for some other reason, simply introduce the command `rs`.
