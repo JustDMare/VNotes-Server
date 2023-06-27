@@ -29,7 +29,6 @@ async function createUserSpace(req: Request, res: Response, next: NextFunction) 
  *
  * @returns the deleted folder.
  */
-//TODO: Create a middleware to delete everything related to this space (Notes/folders)
 async function deteleUserSpace(req: Request, res: Response, next: NextFunction) {
   const authSubject = req.auth?.payload.sub;
 
