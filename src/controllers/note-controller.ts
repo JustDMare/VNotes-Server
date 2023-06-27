@@ -170,7 +170,6 @@ async function updateNoteParentId(req: Request, res: Response, next: NextFunctio
     return res.status(400).json({ message: "A Note cannot be its own parent" });
   }
 
-  //TODO: Might be worth to refactor to another function?
   if (parentId && parentId.length) {
     try {
       checkValidObjetId(_id);

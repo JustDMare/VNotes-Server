@@ -11,19 +11,18 @@ import { FolderModel } from "../models/Folder";
  * @throws Error if no folder is found.
  */
 export async function checkFolderExists(folderId: string) {
-	//TODO: Cambiar para que devuelva un res.status en vez de error?
-	checkValidObjetId(folderId);
-	try {
-		const folder = await FolderModel.findOne({ _id: folderId });
-		if (!folder) {
-			throw new Error(`Folder with _id '${folderId}' does not exist`);
-		}
-	} catch (error) {
-		Logger.error(error);
-		throw new Error(
-			`Error while searching for folder with _id '${folderId}: ${(<Error>error).message}`
-		);
-	}
+  checkValidObjetId(folderId);
+  try {
+    const folder = await FolderModel.findOne({ _id: folderId });
+    if (!folder) {
+      throw new Error(`Folder with _id '${folderId}' does not exist`);
+    }
+  } catch (error) {
+    Logger.error(error);
+    throw new Error(
+      `Error while searching for folder with _id '${folderId}: ${(<Error>error).message}`
+    );
+  }
 }
 
 /**
@@ -33,7 +32,7 @@ export async function checkFolderExists(folderId: string) {
  * @throws error if `id` is not a valid ObjectId
  */
 export function checkValidObjetId(id: string) {
-	if (!isValidObjectId(id)) {
-		throw new Error(`Wrong format for _id '${id}'. Can't be converted to ObjectId`);
-	}
+  if (!isValidObjectId(id)) {
+    throw new Error(`Wrong format for _id '${id}'. Can't be converted to ObjectId`);
+  }
 }

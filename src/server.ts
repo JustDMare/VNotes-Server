@@ -30,7 +30,6 @@ export default function startServer(): void {
   });
   router.use(limiter);
 
-  //TODO: Review if this is ok
   router.use((req, res, next) => {
     /** Log the req */
     Logger.log(
@@ -66,7 +65,6 @@ export default function startServer(): void {
   router.get("/ping", (req, res, next) => res.status(200).json({ ping: "pong" }));
 
   /** Error handling. */
-  //TODO: Check if I need more error handling
   router.use((req, res, next) => {
     const error = new Error("Page not found");
     Logger.error(error);
@@ -75,7 +73,6 @@ export default function startServer(): void {
     });
   });
 
-  //TODO: Change to HTTPS
   http
     .createServer(router)
     .listen(config.server.port, () =>
