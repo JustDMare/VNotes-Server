@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
-import { FolderModel } from "../models/Folder";
 import { NoteModel } from "../models/Note";
 import { UserSpaceModel } from "../models/UserSpace";
 import { checkFolderExists, checkValidObjetId } from "./common-helpers";
